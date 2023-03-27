@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="ui container" style="padding-top: 1em">
+  <div class="ui massive breadcrumb">
+    <a class="section" href="{{ url_for("module.modules") }}">Modules</a>
+    <div class="divider"> / </div>
+    <div class="active section">
+      New Module
+    </div>
+  </div>
+  <div class="ui divider"></div>
+
+  <div class="create">
+    <form class="ui form" method="POST" action="{{ url_for("module.create") }}">
+      {{ form.csrf_token }}
+
+      <div class="required eight wide field">
+        <label>Name</label>
+        <input type="text" name="name" placeholder="Name">
+      </div>
+
+      <h3 class="ui dividing header">
+        Trigger
+      </h3>
+
+      <!-- <div class="ui divider"></div> -->
+
+      <div id="stream" class="required field">
+        <label>Stream</label>
+        <div class="four wide field">
+          <div class="ui selection dropdown">
+            <input type="hidden" name="stream">
+            <div class="default text">
+              Stream
+            </div>
+            <i class="dropdown icon"></i>
+            <div class="menu">
+              <div class="item" data-value="submission">
+                Submissions
+              </div>
+              <div class="item" data-value="comment">
+                Comments
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ui divider"></div>
+
+      <div id="subreddits" class="field">
+        <label>Subreddits <span>(comma-separated)</span></label>
+        <div class="ui multiple search selection dropdown">
+          <input name="targets" type="hidden">
+          <div class="default text">Subreddits</div>
+        </div>
+      </div>
+
+      <div class="ui divider"></div>
+
+      <div id="keywords" class="field">
+        <label>Keywords <span>(comma-separated)</span></label>
+        <div class="ui multiple search selection dropdown">
+          <input name="keywords" type="hidden">
+          <div class="default text">Keywords or keyphrases</div>
+        </div>
+      </div>
+
+      <div class="fields">
+        <div class="inline field">
+          <!-- <label>Flags: </label> -->
+          <div class="ui checkbox">
+            <input type="checkbox" name="require-all" tabindex="0" class="hidden">
+            <label>Require All</label>
+          </div>
+        </div>
+        <div class="inline field">
+          <div class="ui checkbox">
+            <input type="checkbox" name="case" tabindex="0" class="hidden">
+            <label>Case-sensitive</label>
+          </div>
+        </div>
+      </div>
+
+      <div id="fields" class="fields" style="padding-top: 0.5em">
+        <div class="inline field">
+          <label>Fields:</label>
+          <div class="ui checkbox">
+            <input id="title" type="checkbox" name="title" tabindex="0" class="hidden">
+            <label>Title</label>
+          </div>
+        </div>
+        <div class="inline field">
+          <div class="ui checkbox">
+            <input id="body" type="checkbox" name="body" class="hidden">
+            <label>Body</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="ui divider"></div>
+
+      <button class="ui primary button" type="submit">Create Module</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+  $(".ui.checkbox").checkbox();
+
+  $("#subreddits .ui.dropdown").dropdown({
+    allowAdditions: true,
+    maxSelections: 10
+  });
+
+  $("#keywords .ui.dropdown").dropdown({
+    allowAdditions: true,
+    maxSelections: 25
+  });
+
+  $("#stream .ui.dropdown").dropdown({
+    onChange: function(value, text, $selectedItem) {
+      if (value == "submission") {
+        $("#fields #title").prop("checked", true);
+        $("#fields #title").prop("disabled", false);
+        $("#fields #body").prop("checked", false);
+        $("#fields #body").prop("disabled", false);
+      }
+      else if (value == "comment") {
+        $("#fields #title").prop("checked", false);
+        $("#fields #title").prop("disabled", true);
+        $("#fields #body").prop("checked", true);
+        $("#fields #body").prop("disabled", true);
+      }
+    }
+  });
+
+  $("form").submit(function(e) {
+    $("#fields #body").prop("disabled", false);
+  });
+</script>
+{% endblock %}

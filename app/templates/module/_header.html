@@ -1,0 +1,42 @@
+<div class="ui container" style="padding-top: 1em">
+  <div class="ui massive breadcrumb">
+    <a class="section" href="{{ url_for("module.modules") }}">Modules</a>
+    <div class="divider"> / </div>
+    <div class="active section" style="padding-right: 0.5rem">
+      <a href="#">{{ module.name }}</a>
+    </div>
+  </div>
+  <div class="ui compact teal tiny buttons">
+    <div class="ui button">{{ module.status|capitalize }}</div>
+    <div class="ui compact dropdown icon button">
+      <i class="dropdown icon"></i>
+      <div class="menu">
+        <a class="item" href="{{ url_for("module.start", id=module.id) }}">Start</a>
+        <a class="item" href="{{ url_for("module.stop", id=module.id) }}">Stop</a>
+      </div>
+    </div>
+  </div>
+  <div class="ui divider"></div>
+  <div class="ui secondary pointing menu">
+    {% if request.path.split("/")[-1] == "activity" %}
+      <a class="active item" href="{{ url_for("module.activity", id=module.id) }}">Activity</a>
+    {% else %}
+      <a class="item" href="{{ url_for("module.activity", id=module.id) }}">Activity</a>
+    {% endif %}
+    {% if request.path.split("/")[-1] == "trigger" %}
+      <a class="active item" href="{{ url_for("module.trigger", id=module.id) }}">Trigger</a>
+    {% else %}
+      <a class="item" href="{{ url_for("module.trigger", id=module.id) }}">Trigger</a>
+    {% endif %}
+    {% if request.path.split("/")[-1] == "actions" %}
+      <a class="active item" href="{{ url_for("module.actions", id=module.id) }}">Actions</a>
+    {% else %}
+      <a class="item" href="{{ url_for("module.actions", id=module.id) }}">Actions</a>
+    {% endif %}
+    {% if request.path.split("/")[-1] == "settings" %}
+      <a class="active item" href="{{ url_for("module.settings", id=module.id) }}">Settings</a>
+    {% else %}
+      <a class="item" href="{{ url_for("module.settings", id=module.id) }}">Settings</a>
+    {% endif %}
+  </div>
+</div>

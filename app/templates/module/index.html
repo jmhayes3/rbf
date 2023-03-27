@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="ui container" style="padding-top: 1em">
+  <div class="ui massive breadcrumb" style="margin-right: 0.5em">
+    <a class="section" href="{{ url_for("module.index") }}">Modules</a>
+  </div>
+  <a href="{{ url_for("module.create") }}">
+    <button class="ui tiny button">
+      Create Module
+    </button>
+  </a>
+  <div class="ui divider"></div>
+  <div class="ui segment">
+    {% if current_user.modules %}
+    <div class="ui large relaxed divided list">
+      {% for module in current_user.modules %}
+      <div class="item">
+        <div class="content">
+          <a class="header" href="{{ url_for("module.activity", id=module.id) }}">
+            {{ module.name }}
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p>You do not have any modules.
+    <a href="{{ url_for("module.create") }}">Create a new module</a>
+      to see it listed here.
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+{% endblock %}
