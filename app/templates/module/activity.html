@@ -10,7 +10,7 @@
 <div style="margin-top: 1em">
   <span>{{ (pagination.page * pagination.per_page) - (pagination.per_page - 1) }} - {{ ((pagination.page * pagination.per_page), pagination.total)|min }} of {{ pagination.total }} triggered {{ module.stream|lower + "s"}}</span>
 </div>
-<table class="ui small table">
+<table class="ui selectable table">
   <thead>
     {% if module.stream == "submission" %}
       <tr>
