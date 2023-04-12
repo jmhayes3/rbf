@@ -140,3 +140,5 @@ cython_debug/
 logs/
 data/
 scratch/
+
+.vscode/
