@@ -1,3 +1,3 @@
 # Reddit Bot Framework
 
-Web application for monitoring new submissions and comments on Reddit.
+Framework for managing Reddit bots in a pluggable fashion.
