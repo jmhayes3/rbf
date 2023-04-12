@@ -1,4 +1,3 @@
-import csv
 import click
 
 from flask import Blueprint

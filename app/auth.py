@@ -1,8 +1,7 @@
 from flask import (
-    Blueprint, flash, redirect, render_template, request, url_for
+    Blueprint, flash, redirect, render_template, url_for
 )
-from flask_wtf import FlaskForm
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user
 
 from app import db, login
 from app.forms import RegistrationForm, LoginForm
@@ -61,4 +60,3 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("auth.login"))
-
