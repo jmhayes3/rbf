@@ -1,8 +1,4 @@
-import pytest
-
-from engine.trigger.components import (
-    Contains, Keyword
-)
+from engine.trigger.components import Contains, Keyword
 
 
 def test_contains_component():
@@ -18,10 +14,10 @@ def test_contains_component():
     assert all([value if value in result else None for value in values])
     component.values = ["not", "present"]
     result = component.process(data)
-    assert result == None
+    assert result is None
     component.field = "body"
     result = component.process(data)
-    assert result == None
+    assert result is None
 
 
 def test_keyword_component():
@@ -38,4 +34,4 @@ def test_keyword_component():
     component = Keyword(["fashion"], fields=["body"])
     component.require_all = True
     result = component.process(data)
-    assert result == None
+    assert result is None
