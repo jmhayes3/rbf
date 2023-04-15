@@ -3,9 +3,9 @@ from engine.trigger.components import Contains, Keyword
 
 def test_contains_component():
     data = {
-        "title": "A good ol' fashioned Siamese murder-suicide"
+        "title": "A good ol' fashioned Old Fashioned",
     }
-    values = ["A", "good", "ol'", "fashioned", "Siamese", "murder-suicide"]
+    values = ["A", "good", "ol'", "fashioned", "Old", "Fashioned"]
     component = Contains(values, field="title")
     result = component.process(data)
     assert result == "A"
@@ -22,7 +22,7 @@ def test_contains_component():
 
 def test_keyword_component():
     data = {
-        "body": "A good ol' fashioned Siamese murder-suicide"
+        "body": "A good ol' fashioned Old Fashioned",
     }
     keywords = ["good", "fashioned"]
     component = Keyword(keywords, fields=["body"])
