@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
-
 import os
 import sys
 import traceback
 import logging
-import time
 import praw
 import zmq
 
@@ -23,7 +20,7 @@ def get_session():
             # refresh_token=os.environ.get("REFRESH_TOKEN"),
 
         )
-    except:
+    except Exception:
         logger.error("Uncaught exception: {}".format(traceback.format_exc()))
         sys.exit(-1)
 
@@ -103,4 +100,3 @@ def comment_publisher(subreddit="all"):
                 "context": "comment",
                 "payload": comment_data
             })
-
