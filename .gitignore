@@ -142,3 +142,4 @@ data/
 scratch/
 
 .vscode/
+*.code-workspace
