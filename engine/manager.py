@@ -1,5 +1,4 @@
 import os
-import signal
 import sys
 import traceback
 import logging
@@ -9,13 +8,10 @@ import multiprocessing
 import zmq
 
 from dotenv import load_dotenv
-from sqlalchemy.sql import text
 
-from .database import initialize_db, Database
+from .database import Database
 from .worker import run_worker
-from .models import Module
 from .publishers import submission_publisher, comment_publisher
-from .helpers import zpipe, profile, timeit
 
 load_dotenv()
 
@@ -47,28 +43,17 @@ class Manager:
         # self.messenger.setsockopt_string(zmq.SUBSCRIBE, "")
         self.messenger.bind(os.getenv("MESSENGER_URI"))
 
-        # Pipe for communicating with queue processor thread.
-        # self.pipe, peer = zpipe(self.ctx)
-
-        # self.queue_url = os.getenv("SQS_QUEUE_URL")
-
-        # self.queue_processor = SQSQueueProcessor(
-        #     self.ctx,
-        #     peer,
-        #     self.queue_url
-        # )
-        # self.queue_processor.daemon = True
-
+        # Should be a separate process.
         self.submission_publisher = threading.Thread(target=submission_publisher)
         self.submission_publisher.daemon = True
 
+        # Should be a separate process.
         self.comment_publisher = threading.Thread(target=comment_publisher)
         self.comment_publisher.daemon = True
 
         self.poller = zmq.Poller()
         self.poller.register(self.collector, zmq.POLLIN)
         self.poller.register(self.messenger, zmq.POLLIN)
-        # self.poller.register(self.pipe, zmq.POLLIN)
 
         self.db = Database()
 
@@ -239,10 +224,9 @@ class Manager:
                     traceback.format_exc()
                 )
                 sys.exit(-1)
-            except:
+            except Exception:
                 self.logger.critical("Uncaught exception: {}".format(
                         traceback.format_exc()
                     )
                 )
                 sys.exit(-1)
-

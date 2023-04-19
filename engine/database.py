@@ -96,4 +96,3 @@ class Database:
             stmt = insert(TriggeredComment).values(module_id=module_id, **comment)
             result = conn.execute(stmt)
             conn.commit()
-

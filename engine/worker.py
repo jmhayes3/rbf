@@ -3,14 +3,12 @@ import sys
 import time
 import logging
 import traceback
-import random
 import zmq
 
 from dotenv import load_dotenv
 
 from .database import Database
 from .responder import Responder
-from .helpers import timeit, profile
 
 load_dotenv()
 
@@ -50,19 +48,8 @@ class Worker:
 
         self.db = Database()
 
-        if reload and id:
-            # Load all responders associated with id from database.
-            pass
-
         self.seen_submissions = 0
         self.seen_comments = 0
-
-    def reload(self, id):
-        """
-        Load all responders from the database corresponding with the given id
-        and add them to the list of active responders.
-        """
-        pass
 
     def send_heartbeat(self):
         self.publisher.send_json({
@@ -88,10 +75,6 @@ class Worker:
                 return active_responder
 
     def load_responder(self, responder_id):
-        """
-        Loads the responder with responder_id from the database, initializes it,
-        then adds it to the list of active responders.
-        """
         responder = self.get_responder(responder_id)
         if responder:
             self.logger.info(
@@ -116,10 +99,6 @@ class Worker:
                 return False
 
     def kill_responder(self, responder_id):
-        """
-        Remove responder with responder_id from the list of active responders
-        if it exists.
-        """
         responder = self.get_responder(responder_id)
         if responder:
             self.responders.remove(responder)
@@ -224,10 +203,9 @@ class Worker:
                     traceback.format_exc()
                 )
                 sys.exit(-1)
-            except:
+            except Exception:
                 self.logger.critical("Uncaught exception: {}".format(
                         traceback.format_exc()
                     )
                 )
                 sys.exit(-1)
-
