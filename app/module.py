@@ -2,7 +2,6 @@ import os
 import json
 import time
 import zmq
-import boto3
 
 from flask import (
     Blueprint, flash, redirect, render_template, request, url_for, current_app
@@ -35,20 +34,6 @@ def publish_message(context, payload):
         publisher.disconnect(uri)
         publisher.close()
         ctx.term()
-
-
-def send_sqs_message(context, payload):
-    sqs = boto3.resource("sqs")
-    queue = sqs.Queue(os.getenv("SQS_QUEUE_URL"))
-    response = queue.send_message(
-        MessageBody=json.dumps({
-            "context": context,
-            "payload": payload
-        })
-    )
-    if response.get("Failed"):
-        return False
-    return True
 
 
 def create_module(current_user, form):
@@ -223,7 +208,6 @@ def start(id):
     module = Module.query.filter(Module.id == id).first()
     if module is not None:
         if module.user.id == current_user.id:
-            # success = send_sqs_message("load", module.id)
             publish_message("load", module.id)
             module.status = "STARTING"
             db.session.commit()
@@ -240,7 +224,6 @@ def stop(id):
     module = Module.query.filter(Module.id == id).first()
     if module is not None:
         if module.user.id == current_user.id:
-            # success = send_sqs_message("kill", module.id)
             publish_message("kill", module.id)
             module.status = "STOPPING"
             db.session.commit()

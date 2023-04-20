@@ -6,7 +6,6 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from .database import Base, db_session
-from .helpers import profile, timeit
 
 
 class User(Base):
@@ -55,7 +54,6 @@ class Module(Base):
         return "{}/{}".format(self.user.username, self.name)
 
     @staticmethod
-    # @timeit
     def insert_triggered_submission(module_id, submission):
         with db_session() as session:
             module = session.query(Module).get(module_id)
@@ -75,7 +73,6 @@ class Module(Base):
             session.commit()
 
     @staticmethod
-    # @timeit
     def insert_triggered_comment(module_id, comment):
         with db_session() as session:
             module = session.query(Module).get(module_id)
@@ -92,7 +89,6 @@ class Module(Base):
             session.commit()
 
     @staticmethod
-    # @timeit
     def update_status(module_id, status):
         with db_session() as session:
             module = session.query(Module).get(module_id)
@@ -100,14 +96,12 @@ class Module(Base):
             session.commit()
 
     @staticmethod
-    # @timeit
     def get(module_id):
         with db_session() as session:
             module = session.query(Module).get(module_id)
             return module
 
     @staticmethod
-    # @timeit
     def enabled():
         with db_session() as session:
             modules = session.query(Module) \
