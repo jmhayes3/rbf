@@ -15,13 +15,7 @@ load_dotenv()
 HEARTBEAT_INTERVAL = 1.0
 
 
-def run_worker(**kwargs):
-    worker = Worker(**kwargs)
-    worker.start()
-
-
 class Worker:
-
     def __init__(self, reload=False, id=None):
         self.id = os.getpid()
 
@@ -205,7 +199,12 @@ class Worker:
                 sys.exit(-1)
             except Exception:
                 self.logger.critical("Uncaught exception: {}".format(
-                        traceback.format_exc()
-                    )
+                    traceback.format_exc()
+                )
                 )
                 sys.exit(-1)
+
+
+if __name__ == "__main__":
+    worker = Worker()
+    worker.start()

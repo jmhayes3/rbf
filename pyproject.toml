@@ -1,16 +1,15 @@
 [tool.poetry]
 name = "rbf"
 version = "0.1.0"
-description = "Reddit bot framework."
+description = "Bot framework for Reddit"
 authors = ["jmhayes3 <22490346+jmhayes3@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
-keywords = ["reddit", "bot"]
+repository = "https://github.com/jmhayes3/rbf"
 packages = [
     { include = "engine" },
     { include = "app" },
 ]
-repository = "https://github.com/jmhayes3/rbf"
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -29,8 +28,7 @@ flask-wtf = "^1.1.1"
 pytest = "^7.3.1"
 
 [tool.poetry.scripts]
-rbf-engine = "console:cli"
-rbf-app = "app:create_app().run()"
+rbf = "engine.__main__:cli"
 
 [build-system]
 requires = ["poetry-core"]

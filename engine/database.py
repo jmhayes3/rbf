@@ -6,7 +6,6 @@ from sqlalchemy import create_engine
 from sqlalchemy import select, update, insert
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.pool import NullPool
 from sqlalchemy.sql import text
 from dotenv import load_dotenv
 
@@ -16,7 +15,6 @@ Base = declarative_base()
 
 engine = create_engine(
     os.getenv("DATABASE_URI"),
-    # poolclass=NullPool,
     echo=False
 )
 

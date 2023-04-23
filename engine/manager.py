@@ -10,7 +10,7 @@ import zmq
 from dotenv import load_dotenv
 
 from .database import Database
-from .worker import run_worker
+from .worker import Worker
 from .publishers import submission_publisher, comment_publisher
 
 load_dotenv()
