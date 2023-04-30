@@ -15,24 +15,20 @@ def cli(ctx):
 
 
 @cli.command()
-@click.option("--address", metavar="ADDRESS", type=click.Path(), default="")
 @click.option("--port", metavar="PORT", type=int, default=8000)
-def engine(address, port):
-    click.echo("Starting engine...")
-
-    # manager = Manager(num_workers=1)
-    # manager.start()
+def engine(port):
+    click.echo(f"Starting engine on port: {port}")
+    manager = Manager(num_workers=1)
+    manager.start()
 
 
 @cli.command()
-@click.option("--address", metavar="ADDRESS", type=click.Path(), default="localhost", help="Address")
+@click.option("--port", metavar="PORT", type=int, default=8000)
 @click.option("--debug", is_flag=True, help="Run in debug mode")
-def web(address, debug):
+def web(port, debug):
+    click.echo(f"Running on port: {port}")
     if debug:
-        click.echo("Running in debug mode!")
-
-    click.echo(f"Web application is running at: {address}")
-
+        click.echo("DEBUG MODE!")
 
 def main():
     cli()

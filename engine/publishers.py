@@ -18,7 +18,6 @@ def get_session():
             password=os.environ.get("PASSWORD"),
             username=os.environ.get("USERNAME"),
             # refresh_token=os.environ.get("REFRESH_TOKEN"),
-
         )
     except Exception:
         logger.error("Uncaught exception: {}".format(traceback.format_exc()))

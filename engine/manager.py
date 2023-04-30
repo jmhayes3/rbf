@@ -1,17 +1,17 @@
+import logging
+import multiprocessing
 import os
 import sys
-import traceback
-import logging
-import time
 import threading
-import multiprocessing
-import zmq
+import time
+import traceback
 
+import zmq
 from dotenv import load_dotenv
 
 from .database import Database
+from .publishers import comment_publisher, submission_publisher
 from .worker import Worker
-from .publishers import submission_publisher, comment_publisher
 
 load_dotenv()
 
@@ -21,6 +21,8 @@ WORKER_TTL = 5.0
 class Manager:
 
     def __init__(self, num_workers=1, load_modules=True, reload_workers=False):
+        """Distribute work to workers and manage their lifecycles."""
+
         self.logger = logging.getLogger(__name__)
 
         self.ctx = zmq.Context()
