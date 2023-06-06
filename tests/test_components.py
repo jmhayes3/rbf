@@ -11,7 +11,9 @@ def test_contains_component():
     assert result == "A"
     component.require_all = True
     result = component.process(data)
-    assert all([value if value in result else None for value in values])
+    assert isinstance(result, list)
+    for value in values:
+        assert value in result
     component.values = ["not", "present"]
     result = component.process(data)
     assert result is None
