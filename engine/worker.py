@@ -5,23 +5,19 @@ import logging
 import traceback
 import zmq
 
-from dotenv import load_dotenv
-
-from .database import Database
-from .responder import Responder
-
-load_dotenv()
+from database import Database
+from responder import Responder
 
 HEARTBEAT_INTERVAL = 1.0
 
+logger = logging.getLogger(__name__)
 
 class Worker:
-    def __init__(self, reload=False, id=None):
+    def __init__(self):
         self.id = os.getpid()
 
-        self.logger = logging.getLogger(__name__)
-
         self.ctx = zmq.Context()
+
         self.subscriber = self.ctx.socket(zmq.SUB)
         self.subscriber.setsockopt_string(zmq.SUBSCRIBE, "")
         self.subscriber.connect(os.getenv("BROADCASTER_URI"))
@@ -71,23 +67,22 @@ class Worker:
     def load_responder(self, responder_id):
         responder = self.get_responder(responder_id)
         if responder:
-            self.logger.info(
+            logger.info(
                 "Responder {} already loaded".format(responder_id)
             )
             return False
         else:
             module = self.db.get_module(responder_id)
-            print(module)
             if module:
                 responder = Responder(module[0], module[1])
                 self.responders.append(responder)
-                self.logger.info(
+                logger.info(
                     "Responder {} loaded".format(responder.id)
                 )
                 self.db.update_module_status(responder_id, "RUNNING")
                 return True
             else:
-                self.logger.warning(
+                logger.warning(
                     "Module {} not found".format(responder_id)
                 )
                 return False
@@ -96,13 +91,13 @@ class Worker:
         responder = self.get_responder(responder_id)
         if responder:
             self.responders.remove(responder)
-            self.logger.info(
+            logger.info(
                 "Responder {} killed".format(responder_id)
             )
             self.db.update_module_status(responder_id, "READY")
             return True
         else:
-            self.logger.info(
+            logger.info(
                 "Responder {} not found".format(responder_id)
             )
             return False
@@ -130,7 +125,7 @@ class Worker:
                     )
 
     def on_kill_message(self, payload):
-        self.logger.debug("Kill request received: {}".format(payload))
+        logger.debug("Kill request received: {}".format(payload))
         responder = payload.get("responder")
         killed = self.kill_responder(responder)
         if killed:
@@ -144,7 +139,7 @@ class Worker:
             })
 
     def on_load_message(self, payload):
-        self.logger.debug("Load request received: {}".format(payload))
+        logger.debug("Load request received: {}".format(payload))
         responder = payload.get("responder")
         loaded = self.load_responder(responder)
         if loaded:
@@ -165,7 +160,7 @@ class Worker:
         sys.exit(0)
 
     def start(self):
-        self.logger.info("Worker {} started".format(self.id))
+        logger.info("Worker {} started".format(self.id))
         self.send_heartbeat()
         alarm = time.time() + HEARTBEAT_INTERVAL
         while True:
@@ -193,18 +188,4 @@ class Worker:
             except KeyboardInterrupt:
                 self.shutdown()
             except zmq.ZMQError:
-                self.logger.error(
-                    traceback.format_exc()
-                )
-                sys.exit(-1)
-            except Exception:
-                self.logger.critical("Uncaught exception: {}".format(
-                    traceback.format_exc()
-                )
-                )
-                sys.exit(-1)
-
-
-if __name__ == "__main__":
-    worker = Worker()
-    worker.start()
+                logger.error(traceback.format_exc())

@@ -1,7 +1,7 @@
 import logging
 import json
 
-from .trigger import create_trigger
+from trigger import create_trigger
 
 
 class Responder:

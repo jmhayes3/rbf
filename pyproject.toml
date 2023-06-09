@@ -1,34 +1,17 @@
 [tool.poetry]
-name = "rbf"
+name = "roveit"
 version = "0.1.0"
-description = "Bot framework for Reddit"
-authors = ["jmhayes3 <22490346+jmhayes3@users.noreply.github.com>"]
+description = ""
+authors = ["jmhayes3"]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/jmhayes3/rbf"
-packages = [
-    { include = "engine" },
-    { include = "app" },
-]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-pyzmq = "^25.0.2"
+python = "^3.11"
 click = "^8.1.3"
-flask = "^2.2.3"
-python-dotenv = "^1.0.0"
-sqlalchemy = "^2.0.9"
-psycopg2 = "^2.9.6"
+pyzmq = "^25.1.0"
 praw = "^7.7.0"
-flask-sqlalchemy = "^3.0.3"
-flask-login = "^0.6.2"
-flask-wtf = "^1.1.1"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.3.1"
-
-[tool.poetry.scripts]
-rbf = "engine.__main__:cli"
+sqlalchemy = "^2.0.15"
 
 [build-system]
 requires = ["poetry-core"]

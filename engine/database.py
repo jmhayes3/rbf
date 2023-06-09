@@ -7,41 +7,8 @@ from sqlalchemy import select, update, insert
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import text
-from dotenv import load_dotenv
-
-load_dotenv()
 
 Base = declarative_base()
-
-engine = create_engine(
-    os.getenv("DATABASE_URI"),
-    echo=False
-)
-
-
-def initialize_db():
-    from . import models
-    # Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
-
-
-@contextmanager
-def db_session(engine=engine):
-    """
-    ex:
-        with db_session() as session:
-            session.add(something)
-            session.commit()
-    """
-    Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    session = Session()
-    try:
-        yield session
-    except Exception as e:
-        session.rollback()
-        raise e
-    finally:
-        session.close()
 
 
 class Database:
@@ -49,7 +16,6 @@ class Database:
     def __init__(self):
         uri = os.getenv("DATABASE_URI")
 
-        # self.engine = create_engine(uri, poolclass=NullPool, echo=False)
         self.engine = create_engine(uri, echo=False)
 
         self.engine.dispose()
