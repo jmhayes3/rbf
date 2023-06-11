@@ -5,7 +5,7 @@ import sys
 import threading
 import time
 import traceback
-from typing import Any
+from typing import NoReturn
 
 import zmq
 
@@ -13,11 +13,11 @@ from publishers import comment_publisher, submission_publisher
 
 WORKER_TTL = 5.0
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(name=__name__)
 
 class WorkerManager:
 
-    def __init__(self, worker, num_workers=1):
+    def __init__(self, worker, num_workers=1) -> None:
         """Distribute work to workers and manage their lifecycles."""
 
         self.pool = []
@@ -131,7 +131,7 @@ class WorkerManager:
         self.ctx.term()
         sys.exit(0)
 
-    def eventloop(self):
+    def eventloop(self) -> NoReturn:
         while True:
             try:
                 events = dict(self.poller.poll(1000))
@@ -167,7 +167,7 @@ class Engine:
         self.manager = manager
         self.manager.start()
 
-    def eventloop(self):
+    def eventloop(self) -> NoReturn:
         print("Starting event loop")
         while True:
             print("Beep")

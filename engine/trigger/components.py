@@ -1,5 +1,6 @@
 import json
 import re
+from typing import Any
 
 
 class Component:
@@ -7,20 +8,19 @@ class Component:
 
 
 class Contains(Component):
-
-    def __init__(self, values, field, require_all=False, case=True):
+    def __init__(self, values, field, require_all=False, case=True) -> None:
         if not case:
             self.values = [value.lower() for value in values]
         else:
-            self.values = values
+            self.values: Any = values
 
-        self.field = field
-        self.require_all = require_all
-        self.case = case
+        self.field: Any = field
+        self.require_all: bool = require_all
+        self.case: bool = case
 
         self.validate()
 
-    def validate(self):
+    def validate(self) -> None:
         if not isinstance(self.values, list):
             raise TypeError
         for value in self.values:
@@ -50,7 +50,7 @@ class Contains(Component):
             "field": self.field,
             "values": self.values,
             "require_all": self.require_all,
-            "case": self.case
+            "case": self.case,
         }
 
     def to_json(self):
@@ -58,7 +58,6 @@ class Contains(Component):
 
 
 class Regex(Component):
-
     def __init__(self, regex, field, case=True):
         self.regex = regex
         self.field = field
@@ -86,18 +85,13 @@ class Regex(Component):
             return result
 
     def to_dict(self):
-        return {
-            "regex": self.regex,
-            "field": self.field,
-            "case": self.case
-        }
+        return {"regex": self.regex, "field": self.field, "case": self.case}
 
     def to_json(self):
         return json.dumps(self.to_dict())
 
 
 class Keyword(Component):
-
     regex_template = "(?<![a-zA-Z0-9])({})(?![a-zA-Z0-9])"
 
     def __init__(self, keywords, fields, require_all=False, case=True):
@@ -126,8 +120,7 @@ class Keyword(Component):
             )
         else:
             self.pattern = re.compile(
-                Keyword.regex_template.format(keywords_as_regex),
-                re.IGNORECASE
+                Keyword.regex_template.format(keywords_as_regex), re.IGNORECASE
             )
 
     def process(self, data):
@@ -152,65 +145,57 @@ class Keyword(Component):
             "fields": self.fields,
             "keywords": self.keywords,
             "require_all": self.require_all,
-            "case": self.case
+            "case": self.case,
         }
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
+    def to_json(self) -> str:
+        return json.dumps(obj=self.to_dict())
 
 
 class Domain(Component):
+    def __init__(self, domain, field) -> None:
+        self.domain: Any = domain
+        self.field: Any = field
 
-    def __init__(self, domain, field):
-        self.domain = domain
-        self.field = field
-
-    def validate(self):
+    def validate(self) -> None:
         pass
 
-    def process(self, data):
+    def process(self, data) -> None:
         """
         if data["url"] != data["permalink"]:
             process
         """
         pass
 
-    def to_dict(self):
-        return {
-            "domain": self.domain,
-            "field": self.field
-        }
+    def to_dict(self) -> dict[str, Any]:
+        return {"domain": self.domain, "field": self.field}
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
+    def to_json(self) -> str:
+        return json.dumps(obj=self.to_dict())
 
 
 class NSFW(Component):
-
-    def __init__(self, nsfw, field):
-        self.nsfw = nsfw
-        self.field = field
+    def __init__(self, nsfw, field) -> None:
+        self.nsfw: Any = nsfw
+        self.field: Any = field
 
         self.validate()
 
-    def validate(self):
+    def validate(self) -> None:
         if not isinstance(self.nsfw, bool):
             raise TypeError
         if not isinstance(self.field, str):
             raise TypeError
 
-    def process(self, data):
+    def process(self, data) -> bool | None:
         if self.field in data:
             nsfw = data[self.field]
             if nsfw == self.nsfw:
                 return True
             return False
 
-    def to_dict(self):
-        return {
-            "nsfw": self.nsfw,
-            "field": self.field
-        }
+    def to_dict(self) -> dict[str, Any]:
+        return {"nsfw": self.nsfw, "field": self.field}
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
+    def to_json(self) -> str:
+        return json.dumps(obj=self.to_dict())

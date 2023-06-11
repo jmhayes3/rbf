@@ -13,6 +13,9 @@ pyzmq = "^25.1.0"
 praw = "^7.7.0"
 sqlalchemy = "^2.0.15"
 
+[tool.poetry.group.dev.dependencies]
+pylint = "^2.17.4"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

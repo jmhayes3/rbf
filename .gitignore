@@ -143,3 +143,5 @@ scratch/
 
 .vscode/
 *.code-workspace
+
+.DS_Store
