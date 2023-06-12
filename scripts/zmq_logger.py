@@ -1,3 +1,5 @@
+"""ZMQ log handler."""
+
 import logging
 import time
 

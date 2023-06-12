@@ -5,17 +5,18 @@ import sys
 import threading
 import time
 import traceback
+
 from typing import NoReturn
 
 import zmq
 
-from publishers import comment_publisher, submission_publisher
+from rbf.engine.publishers import comment_publisher, submission_publisher
 
 WORKER_TTL = 5.0
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
-class WorkerManager:
+class Manager:
 
     def __init__(self, worker, num_workers=1) -> None:
         """Distribute work to workers and manage their lifecycles."""
@@ -60,7 +61,7 @@ class WorkerManager:
         self.submission_publisher.start()
         self.comment_publisher.start()
 
-    def start(self):
+    def start(self) -> None:
         for i in range(self.num_workers or 1):
             process = multiprocessing.Process(
                 name=f"worker-{i}",
@@ -72,21 +73,21 @@ class WorkerManager:
         for process in self.pool:
             process.join()
 
-    def terminate(self, *args, **kwargs):
+    def terminate(self, *args, **kwargs) -> None:
         while self.pool:
             self.pool.pop().terminate()
 
-    def reload(self, *args, **kwargs):
+    def reload(self, *args, **kwargs) -> None:
         self.terminate()
         self.start()
 
-    def on_heartbeat(self, payload):
+    def on_heartbeat(self, payload) -> None:
         worker_id = payload.get("worker_id")
         self.active_workers[worker_id] = dict()
         self.active_workers[worker_id]["TTL"] = time.time() + WORKER_TTL
         self.active_workers[worker_id]["responders"] = []
 
-    def on_killed(self, payload):
+    def on_killed(self, payload) -> None:
         worker = payload.get("worker_id")
         responder = payload.get("responder")
 
@@ -94,7 +95,7 @@ class WorkerManager:
 
         logger.info("Responder {} killed by worker {}".format(responder, worker))
 
-    def on_loaded(self, payload):
+    def on_loaded(self, payload) -> None:
         worker = payload.get("worker_id")
         responder = payload.get("responder")
 
@@ -102,7 +103,7 @@ class WorkerManager:
 
         logger.info("Responder {} loaded by worker {}".format(responder, worker))
 
-    def on_load(self, payload):
+    def on_load(self, payload) -> None:
         logger.debug("Load request received: {}".format(payload))
 
         self.distributor.send_json({
@@ -112,7 +113,7 @@ class WorkerManager:
             }
         })
 
-    def on_kill(self, payload):
+    def on_kill(self, payload) -> None:
         logger.debug("Kill request received: {}".format(payload))
 
         self.broadcaster.send_json({
@@ -122,7 +123,7 @@ class WorkerManager:
             }
         })
 
-    def shutdown(self):
+    def shutdown(self) -> NoReturn:
         self.terminate()
         self.broadcaster.close()
         self.distributor.close()
@@ -163,7 +164,7 @@ class WorkerManager:
 
 class Engine:
 
-    def __init__(self, manager):
+    def __init__(self, manager) -> None:
         self.manager = manager
         self.manager.start()
 

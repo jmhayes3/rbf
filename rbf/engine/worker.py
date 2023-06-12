@@ -3,10 +3,11 @@ import sys
 import time
 import logging
 import traceback
+from typing import NoReturn
 import zmq
 
-from database import Database
-from responder import Responder
+from .database import Database
+from .responder import Responder
 
 HEARTBEAT_INTERVAL = 1.0
 
@@ -27,7 +28,7 @@ class Worker:
         self.collector = self.ctx.socket(zmq.PULL)
         self.collector.connect(os.getenv("DISTRIBUTOR_URI"))
 
-        self.publisher = self.ctx.socket(zmq.PUSH)
+        self.publisher = self.ctx.socket(socket_type=zmq.PUSH)
         self.publisher.connect(os.getenv("COLLECTOR_URI"))
 
         self.poller = zmq.Poller()
@@ -41,7 +42,7 @@ class Worker:
         self.seen_submissions = 0
         self.seen_comments = 0
 
-    def send_heartbeat(self):
+    def send_heartbeat(self) -> None:
         self.publisher.send_json({
             "context": "heartbeat",
             "payload": {
@@ -49,7 +50,7 @@ class Worker:
             }
         })
 
-    def send_status(self):
+    def send_status(self) -> None:
         self.publisher.send_json({
             "context": "status",
             "payload": {
@@ -64,7 +65,7 @@ class Worker:
             if active_responder.id == responder_id:
                 return active_responder
 
-    def load_responder(self, responder_id):
+    def load_responder(self, responder_id) -> bool:
         responder = self.get_responder(responder_id)
         if responder:
             logger.info(
@@ -87,7 +88,7 @@ class Worker:
                 )
                 return False
 
-    def kill_responder(self, responder_id):
+    def kill_responder(self, responder_id) -> bool:
         responder = self.get_responder(responder_id)
         if responder:
             self.responders.remove(responder)
@@ -102,7 +103,7 @@ class Worker:
             )
             return False
 
-    def on_submission(self, submission):
+    def on_submission(self, submission) -> None:
         if submission:
             self.seen_submissions += 1
             for responder in self.responders:
@@ -113,7 +114,7 @@ class Worker:
                         submission
                     )
 
-    def on_comment(self, comment):
+    def on_comment(self, comment) -> None:
         if comment:
             self.seen_comments += 1
             for responder in self.responders:
@@ -124,7 +125,7 @@ class Worker:
                         comment
                     )
 
-    def on_kill_message(self, payload):
+    def on_kill_message(self, payload) -> None:
         logger.debug("Kill request received: {}".format(payload))
         responder = payload.get("responder")
         killed = self.kill_responder(responder)
@@ -138,7 +139,7 @@ class Worker:
                 "payload": payload
             })
 
-    def on_load_message(self, payload):
+    def on_load_message(self, payload) -> None:
         logger.debug("Load request received: {}".format(payload))
         responder = payload.get("responder")
         loaded = self.load_responder(responder)
@@ -152,20 +153,20 @@ class Worker:
                 "payload": payload
             })
 
-    def shutdown(self):
+    def shutdown(self) -> NoReturn:
         self.subscriber.close()
         self.collector.close()
         self.publisher.close()
         self.ctx.term()
-        sys.exit(0)
+        sys.exit(__status=0)
 
-    def start(self):
-        logger.info("Worker {} started".format(self.id))
+    def start(self) -> NoReturn:
+        logger.info(msg="Worker {} started".format(self.id))
         self.send_heartbeat()
-        alarm = time.time() + HEARTBEAT_INTERVAL
+        alarm: float = time.time() + HEARTBEAT_INTERVAL
         while True:
             try:
-                events = dict(self.poller.poll(1000))
+                events = dict(self.poller.poll(timeout=1000))
                 if self.collector in events:
                     message = self.collector.recv_json()
                     context = message.get("context")
@@ -177,15 +178,15 @@ class Worker:
                     context = message.get("context")
                     payload = message.get("payload")
                     if context == "kill":
-                        self.on_kill_message(payload)
+                        self.on_kill_message(payload=payload)
                     elif context == "submission":
-                        self.on_submission(payload)
+                        self.on_submission(submission=payload)
                     elif context == "comment":
-                        self.on_comment(payload)
+                        self.on_comment(comment=payload)
                 if time.time() >= alarm:
                     self.send_heartbeat()
                     alarm = time.time() + HEARTBEAT_INTERVAL
             except KeyboardInterrupt:
                 self.shutdown()
             except zmq.ZMQError:
-                logger.error(traceback.format_exc())
+                logger.error(msg=traceback.format_exc())
