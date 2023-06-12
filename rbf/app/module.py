@@ -10,10 +10,10 @@ from flask_wtf import FlaskForm
 from flask_login import login_required, current_user
 from werkzeug.exceptions import abort
 
-from app import db
-from app.forms import ModuleForm
-from app.models import User, Module, TriggeredSubmission, TriggeredComment
-from app.helpers import flash_form_errors
+from . import db
+from .forms import ModuleForm
+from .models import User, Module, TriggeredSubmission, TriggeredComment
+from .helpers import flash_form_errors
 
 bp = Blueprint("module", __name__, url_prefix="/user")
 

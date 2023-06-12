@@ -1,18 +1,19 @@
 """Command-line interface."""
+import subprocess
+import sys
 
 import click
 
 from .engine.manager import Manager
 from .engine.worker import Worker
 
+from .app import create_app
+
 
 CONTEXT_SETTINGS = dict(
     default_map = {
         "engine": {"workers": 2},
-        "web": {
-            "port": 5001,
-            "debug": True,
-        },
+        "web": {"workers": 2},
     }
 )
 
@@ -33,12 +34,14 @@ def engine(workers):
 
 
 @cli.command()
-@click.option("--port", type=int, default=5000)
-@click.option("--debug/--no-debug", default=False)
-def web(port, debug):
-    click.echo(f"DEBUG MODE: {debug}")
-    click.echo(f"Serving on port {port}")
+@click.option("--workers", "-w", type=int, default=1)
+def web(workers):
+    click.echo(f"Workers: {workers}")
+    
+    server = create_app()
+    server.run()
 
+    # launch gunicorn as subprocess
 
 if __name__ == "__main__":
     cli()

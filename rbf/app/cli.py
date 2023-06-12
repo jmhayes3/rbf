@@ -2,8 +2,8 @@ import click
 
 from flask import Blueprint
 
-from app import db
-from app.models import User
+from . import db
+from .models import User
 
 bp = Blueprint("commands", __name__, cli_group=None)
 

@@ -3,10 +3,10 @@ from flask import (
 )
 from flask_login import login_user, logout_user
 
-from app import db, login
-from app.forms import RegistrationForm, LoginForm
-from app.models import User
-from app.helpers import flash_form_errors
+from . import db, login
+from .forms import RegistrationForm, LoginForm
+from .models import User
+from .helpers import flash_form_errors
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 

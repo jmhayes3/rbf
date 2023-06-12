@@ -3,7 +3,7 @@ from wtforms import (
     validators, StringField, PasswordField, BooleanField
 )
 
-from app.fields import ListField
+from .fields import ListField
 
 
 class RegistrationForm(FlaskForm):

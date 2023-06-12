@@ -5,7 +5,7 @@ from werkzeug.security import (
 )
 from flask_login import UserMixin
 
-from app import db
+from . import db
 
 
 class User(db.Model, UserMixin):
