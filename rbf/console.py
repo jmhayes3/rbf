@@ -1,6 +1,4 @@
 """Command-line interface."""
-import subprocess
-import sys
 
 import click
 
@@ -10,38 +8,30 @@ from .engine.worker import Worker
 from .app import create_app
 
 
-CONTEXT_SETTINGS = dict(
-    default_map = {
-        "engine": {"workers": 2},
-        "web": {"workers": 2},
-    }
-)
-
-
-@click.group(context_settings=CONTEXT_SETTINGS)
-def cli():
+@click.group()
+def cli() -> None:
     pass
 
 
 @cli.command()
 @click.option("--workers", "-w", type=int, default=1)
-def engine(workers):
-    click.echo(f"Workers: {workers}")
-
+def engine(workers) -> None:
     worker = Worker()
     manager = Manager(worker, num_workers=workers)
     manager.start()
 
 
 @cli.command()
-@click.option("--workers", "-w", type=int, default=1)
-def web(workers):
-    click.echo(f"Workers: {workers}")
-    
-    server = create_app()
-    server.run()
+@click.option("--init-db/--no-init-db", default=False)
+@click.option("--debug/--no-debug", default=True)
+def web(init_db, debug) -> None:
+    app = create_app()
 
-    # launch gunicorn as subprocess
+    if init_db:
+        from .app import db
 
-if __name__ == "__main__":
-    cli()
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+
+    app.run(debug=debug)

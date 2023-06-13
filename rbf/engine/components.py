@@ -1,5 +1,6 @@
 import json
 import re
+
 from typing import Any
 
 
@@ -12,9 +13,9 @@ class Contains(Component):
         if not case:
             self.values = [value.lower() for value in values]
         else:
-            self.values: Any = values
+            self.values= values
 
-        self.field: Any = field
+        self.field = field
         self.require_all: bool = require_all
         self.case: bool = case
 
@@ -154,8 +155,8 @@ class Keyword(Component):
 
 class Domain(Component):
     def __init__(self, domain, field) -> None:
-        self.domain: Any = domain
-        self.field: Any = field
+        self.domain = domain
+        self.field = field
 
     def validate(self) -> None:
         pass
@@ -176,8 +177,8 @@ class Domain(Component):
 
 class NSFW(Component):
     def __init__(self, nsfw, field) -> None:
-        self.nsfw: Any = nsfw
-        self.field: Any = field
+        self.nsfw = nsfw
+        self.field = field
 
         self.validate()
 
