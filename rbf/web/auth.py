@@ -1,22 +1,24 @@
 from flask import (
     Blueprint, flash, redirect, render_template, url_for
 )
-from flask_login import login_user, logout_user
+from flask_login import LoginManager, login_user, logout_user
 
-from . import db, login
 from .forms import RegistrationForm, LoginForm
-from .models import User
+from .models import db, User
 from .helpers import flash_form_errors
 
-bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+auth_bp= Blueprint("auth", __name__, url_prefix="/auth")
+
+login_manager = LoginManager()
 
 
-@login.user_loader
+@login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id))
 
 
-@bp.route("/register", methods=("GET", "POST"))
+@auth_bp.route("/register", methods=("GET", "POST"))
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
@@ -38,7 +40,7 @@ def register():
     return render_template("auth/register.html", form=form)
 
 
-@bp.route("/login", methods=("GET", "POST"))
+@auth_bp.route("/login", methods=("GET", "POST"))
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -56,7 +58,7 @@ def login():
     return render_template("auth/login.html", form=form)
 
 
-@bp.route("/logout")
+@auth_bp.route("/logout")
 def logout():
     logout_user()
     return redirect(url_for("auth.login"))

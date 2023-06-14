@@ -7,25 +7,23 @@ from flask import (
 )
 from flask_login import login_required, current_user
 
-from . import db
-from .models import User, Module
 
-bp = Blueprint("api", __name__, url_prefix="/api")
+api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 
-@bp.route("/modules/", methods=("GET",))
+@api_bp.route("/modules/", methods=("GET",))
 @login_required
 def get_modules():
     pass
 
 
-@bp.route("/module/<int:id>", methods=("GET",))
+@api_bp.route("/module/<int:id>", methods=("GET",))
 @login_required
 def get_module():
     pass
 
 
-@bp.route("/module/<int:id>/triggered", methods=("GET",))
+@api_bp.route("/module/<int:id>/triggered", methods=("GET",))
 @login_required
 def get_module_triggered_items():
     pass

@@ -166,7 +166,6 @@ class Domain(Component):
         if data["url"] != data["permalink"]:
             process
         """
-        pass
 
     def to_dict(self) -> dict[str, Any]:
         return {"domain": self.domain, "field": self.field}

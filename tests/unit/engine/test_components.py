@@ -1,4 +1,4 @@
-from engine.trigger.components import Contains, Keyword
+from rbf.engine.components import Contains, Keyword
 
 
 def test_contains_component():

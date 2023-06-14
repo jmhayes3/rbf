@@ -1,21 +1,19 @@
-import os
 import json
-import time
 import zmq
 
 from flask import (
     Blueprint, flash, redirect, render_template, request, url_for, current_app
 )
-from flask_wtf import FlaskForm
 from flask_login import login_required, current_user
 from werkzeug.exceptions import abort
 
-from . import db
+from .models import db
 from .forms import ModuleForm
-from .models import User, Module, TriggeredSubmission, TriggeredComment
+from .models import Module, TriggeredSubmission, TriggeredComment
 from .helpers import flash_form_errors
 
-bp = Blueprint("module", __name__, url_prefix="/user")
+
+module_bp = Blueprint("module", __name__, url_prefix="/user")
 
 
 def publish_message(context, payload):
@@ -75,19 +73,19 @@ def create_module(current_user, form):
     return module
 
 
-@bp.route("/", methods=("GET",))
+@module_bp.route("/", methods=("GET",))
 @login_required
 def index():
     return render_template("module/index.html")
 
 
-@bp.route("/modules", methods=("GET",))
+@module_bp.route("/modules", methods=("GET",))
 @login_required
 def modules():
     return render_template("module/list.html")
 
 
-@bp.route("/module/create", methods=("GET", "POST"))
+@module_bp.route("/module/create", methods=("GET", "POST"))
 @login_required
 def create():
     form = ModuleForm()
@@ -110,13 +108,13 @@ def create():
     return render_template("module/create.html", form=form)
 
 
-@bp.route("/module/<int:id>/", methods=("GET",))
+@module_bp.route("/module/<int:id>/", methods=("GET",))
 @login_required
 def detail(id):
     return redirect(url_for("module.activity", id=id))
 
 
-@bp.route("/module/<int:id>/activity", methods=("GET",))
+@module_bp.route("/module/<int:id>/activity", methods=("GET",))
 @login_required
 def activity(id):
     module = Module.query.filter(Module.id == id).first()
@@ -148,7 +146,7 @@ def activity(id):
         abort(404)
 
 
-@bp.route("/module/<int:id>/delete", methods=("POST", "DELETE"))
+@module_bp.route("/module/<int:id>/delete", methods=("POST", "DELETE"))
 @login_required
 def delete(id):
     module = Module.query.filter(Module.id == id).first()
@@ -163,7 +161,7 @@ def delete(id):
         abort(404)
 
 
-@bp.route("/module/<int:id>/trigger", methods=("GET", "POST"))
+@module_bp.route("/module/<int:id>/trigger", methods=("GET", "POST"))
 @login_required
 def trigger(id):
     module = Module.query.filter(Module.id == id).first()
@@ -176,7 +174,7 @@ def trigger(id):
         abort(404)
 
 
-@bp.route("/module/<int:id>/actions", methods=("GET", "POST"))
+@module_bp.route("/module/<int:id>/actions", methods=("GET", "POST"))
 @login_required
 def actions(id):
     module = Module.query.filter(Module.id == id).first()
@@ -189,7 +187,7 @@ def actions(id):
         abort(404)
 
 
-@bp.route("/module/<int:id>/settings", methods=("GET", "POST"))
+@module_bp.route("/module/<int:id>/settings", methods=("GET", "POST"))
 @login_required
 def settings(id):
     module = Module.query.filter(Module.id == id).first()
@@ -202,7 +200,7 @@ def settings(id):
         abort(404)
 
 
-@bp.route("/module/<int:id>/start", methods=("GET",))
+@module_bp.route("/module/<int:id>/start", methods=("GET",))
 @login_required
 def start(id):
     module = Module.query.filter(Module.id == id).first()
@@ -218,7 +216,7 @@ def start(id):
         abort(404)
 
 
-@bp.route("/module/<int:id>/stop", methods=("GET",))
+@module_bp.route("/module/<int:id>/stop", methods=("GET",))
 @login_required
 def stop(id):
     module = Module.query.filter(Module.id == id).first()

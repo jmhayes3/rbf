@@ -5,7 +5,7 @@ import click
 from .engine.manager import Manager
 from .engine.worker import Worker
 
-from .app import create_app
+from .web import create_app
 
 
 @click.group()
@@ -22,16 +22,7 @@ def engine(workers) -> None:
 
 
 @cli.command()
-@click.option("--init-db/--no-init-db", default=False)
 @click.option("--debug/--no-debug", default=True)
-def web(init_db, debug) -> None:
+def web(debug) -> None:
     app = create_app()
-
-    if init_db:
-        from .app import db
-
-        with app.app_context():
-            db.drop_all()
-            db.create_all()
-
     app.run(debug=debug)

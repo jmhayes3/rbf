@@ -1,14 +1,8 @@
 import os
 
-from contextlib import contextmanager
-
 from sqlalchemy import create_engine
 from sqlalchemy import select, update, insert
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import text
-
-Base = declarative_base()
 
 
 class Database:

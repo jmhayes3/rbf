@@ -1,11 +1,14 @@
 import json
 
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
+
 from werkzeug.security import (
     check_password_hash, generate_password_hash
 )
-from flask_login import UserMixin
 
-from . import db
+
+db = SQLAlchemy()
 
 
 class User(db.Model, UserMixin):
@@ -191,4 +194,3 @@ class TriggeredComment(db.Model):
 
     def to_json(self):
         return json.dumps(self.to_dict())
-
