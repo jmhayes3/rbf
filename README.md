@@ -15,16 +15,16 @@ This project was started with two primary goals in mind:
 
 ### Installation
 
-    $ pip install <this-package>
+    $ git clone https://github.com/jmhayes3/rbf.git
+    $ cd rbf
+    $ poetry install
 
 ### Usage
-Start the server:
+Start the engine:
 
-    $ rbf-server
+    $ rbf engine
 
-Start the client:
+Start web app:
     
-    $ rbf-client
+    $ rbf web
 
-## Contributing
-[See CONTRIBUTING.md](docs/CONTRIBUTING.md)
