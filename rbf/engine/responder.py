@@ -1,4 +1,3 @@
-import logging
 import json
 
 from .trigger import create_trigger
@@ -7,7 +6,6 @@ from .trigger import create_trigger
 class Responder:
 
     def __init__(self, id, trigger, actions=None):
-        self.logger = logging.getLogger(__name__)
         self.id = id
         self.trigger = create_trigger(data=json.loads(trigger))
         self.actions = actions

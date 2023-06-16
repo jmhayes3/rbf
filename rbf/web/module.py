@@ -35,8 +35,6 @@ def publish_message(context, payload):
 
 
 def create_module(current_user, form):
-    print(form.data)
-
     fields = []
     if form.title.data:
         fields.append("title")

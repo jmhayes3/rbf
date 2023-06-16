@@ -16,8 +16,7 @@ def cli() -> None:
 @cli.command()
 @click.option("--workers", "-w", type=int, default=1)
 def engine(workers) -> None:
-    worker = Worker()
-    manager = Manager(worker, num_workers=workers)
+    manager = Manager()
     manager.start()
 
 

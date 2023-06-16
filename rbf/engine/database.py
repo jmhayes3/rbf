@@ -8,9 +8,7 @@ from sqlalchemy.sql import text
 class Database:
 
     def __init__(self):
-        uri = os.getenv("DATABASE_URI")
-
-        self.engine = create_engine(uri, echo=False)
+        self.engine = create_engine("sqlite:////tmp/rbf.db", echo=False)
 
         self.engine.dispose()
 

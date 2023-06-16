@@ -3,17 +3,20 @@ import sys
 import time
 import logging
 import traceback
-from typing import NoReturn
+
 import zmq
 
-from .database import Database
-from .responder import Responder
+from rbf.engine.database import Database
+from rbf.engine.responder import Responder
+
 
 HEARTBEAT_INTERVAL = 1.0
 
 logger = logging.getLogger(__name__)
 
+
 class Worker:
+
     def __init__(self):
         self.id = os.getpid()
 
@@ -21,15 +24,22 @@ class Worker:
 
         self.subscriber = self.ctx.socket(zmq.SUB)
         self.subscriber.setsockopt_string(zmq.SUBSCRIBE, "")
-        self.subscriber.connect(os.getenv("BROADCASTER_URI"))
-        self.subscriber.connect(os.getenv("SUBMISSION_PUBLISHER_URI"))
-        self.subscriber.connect(os.getenv("COMMENT_PUBLISHER_URI"))
 
+        # Subscribe to broadcaster.
+        self.subscriber.connect("tcp://127.0.0.1:5556")
+
+        # Subscribe to submission publisher.
+        self.subscriber.connect("tcp://127.0.0.1:5560")
+
+        # Subscribe to comment publisher.
+        self.subscriber.connect("tcp://127.0.0.1:5561")
+
+        # Sink for bot load requests.
         self.collector = self.ctx.socket(zmq.PULL)
-        self.collector.connect(os.getenv("DISTRIBUTOR_URI"))
+        self.collector.connect("tcp://127.0.0.1:5557")
 
-        self.publisher = self.ctx.socket(socket_type=zmq.PUSH)
-        self.publisher.connect(os.getenv("COLLECTOR_URI"))
+        self.publisher = self.ctx.socket(zmq.PUB)
+        self.publisher.connect("tcp://127.0.0.1:5558")
 
         self.poller = zmq.Poller()
         self.poller.register(self.collector, zmq.POLLIN)
@@ -67,19 +77,16 @@ class Worker:
 
     def load_responder(self, responder_id) -> bool:
         responder = self.get_responder(responder_id)
+
         if responder:
-            logger.info(
-                "Responder {} already loaded".format(responder_id)
-            )
+            logger.info("Responder {} already loaded".format(responder_id))
             return False
         else:
             module = self.db.get_module(responder_id)
             if module:
                 responder = Responder(module[0], module[1])
                 self.responders.append(responder)
-                logger.info(
-                    "Responder {} loaded".format(responder.id)
-                )
+                logger.info(f"Responder {responder.id} loaded")
                 self.db.update_module_status(responder_id, "RUNNING")
                 return True
             else:
@@ -153,17 +160,19 @@ class Worker:
                 "payload": payload
             })
 
-    def shutdown(self) -> NoReturn:
+    def shutdown(self):
         self.subscriber.close()
         self.collector.close()
         self.publisher.close()
         self.ctx.term()
-        sys.exit(__status=0)
+        sys.exit(0)
 
-    def start(self) -> NoReturn:
-        logger.info(msg="Worker {} started".format(self.id))
+    def start(self):
+        print(f"Worker {self.id} started")
+
         self.send_heartbeat()
-        alarm: float = time.time() + HEARTBEAT_INTERVAL
+
+        alarm = time.time() + HEARTBEAT_INTERVAL
         while True:
             try:
                 events = dict(self.poller.poll(timeout=1000))
@@ -190,3 +199,8 @@ class Worker:
                 self.shutdown()
             except zmq.ZMQError:
                 logger.error(msg=traceback.format_exc())
+
+
+if __name__ == "__main__":
+    worker = Worker()
+    worker.start()

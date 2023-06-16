@@ -14,7 +14,7 @@ class User(Base):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True)
     username = Column(String(25), unique=True, nullable=False)
-    email = Column(String(320), unique=True, nullable=False)
+    email = Column(String(320), unique=True, nullable=True)
     password = Column(String(128), nullable=False)
 
     modules = relationship(
