@@ -1,27 +1,25 @@
 import json
 import re
 
-from typing import Any
-
 
 class Component:
     pass
 
 
 class Contains(Component):
-    def __init__(self, values, field, require_all=False, case=True) -> None:
+    def __init__(self, values, field, require_all=False, case=True):
         if not case:
             self.values = [value.lower() for value in values]
         else:
             self.values= values
 
         self.field = field
-        self.require_all: bool = require_all
-        self.case: bool = case
+        self.require_all = require_all
+        self.case = case
 
         self.validate()
 
-    def validate(self) -> None:
+    def validate(self):
         if not isinstance(self.values, list):
             raise TypeError
         for value in self.values:
@@ -149,53 +147,53 @@ class Keyword(Component):
             "case": self.case,
         }
 
-    def to_json(self) -> str:
+    def to_json(self):
         return json.dumps(obj=self.to_dict())
 
 
 class Domain(Component):
-    def __init__(self, domain, field) -> None:
+    def __init__(self, domain, field):
         self.domain = domain
         self.field = field
 
-    def validate(self) -> None:
+    def validate(self):
         pass
 
-    def process(self, data) -> None:
+    def process(self, data):
         """
         if data["url"] != data["permalink"]:
             process
         """
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self):
         return {"domain": self.domain, "field": self.field}
 
-    def to_json(self) -> str:
+    def to_json(self):
         return json.dumps(obj=self.to_dict())
 
 
 class NSFW(Component):
-    def __init__(self, nsfw, field) -> None:
+    def __init__(self, nsfw, field):
         self.nsfw = nsfw
         self.field = field
 
         self.validate()
 
-    def validate(self) -> None:
+    def validate(self):
         if not isinstance(self.nsfw, bool):
             raise TypeError
         if not isinstance(self.field, str):
             raise TypeError
 
-    def process(self, data) -> bool | None:
+    def process(self, data):
         if self.field in data:
             nsfw = data[self.field]
             if nsfw == self.nsfw:
                 return True
-            return False
+        return False
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self):
         return {"nsfw": self.nsfw, "field": self.field}
 
-    def to_json(self) -> str:
+    def to_json(self):
         return json.dumps(obj=self.to_dict())

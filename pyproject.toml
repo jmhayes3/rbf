@@ -2,13 +2,13 @@
 name = "rbf"
 version = "0.1.0"
 description = "Reddit Bot Framework"
-authors = ["jmhayes3 <jmhayes3@jmhayes3.github.com>"]
+authors = ["jmhayes3 <0.chariot.zombies@icloud.com>"]
 repository = "https://github.com/jmhayes3/rbf"
 license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<4.0"
+python = ">=3.9,<4.0"
 click = "^8.1.3"
 pyzmq = "^25.1.0"
 praw = "^7.7.0"
@@ -19,6 +19,12 @@ flask-login = "^0.6.2"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.3.2"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+pylint = "^2.17.4"
 
 [tool.poetry.scripts]
 rbf = "rbf.console:cli"
