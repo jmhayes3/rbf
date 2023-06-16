@@ -14,6 +14,8 @@ pyzmq = "^25.1.0"
 praw = "^7.7.0"
 sqlalchemy = "^2.0.15"
 flask = "^2.3.2"
+flask-sqlalchemy = "^3.0.3"
+flask-login = "^0.6.2"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.3.2"
