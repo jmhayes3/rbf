@@ -121,10 +121,6 @@ def activity(id):
     if module is not None:
         if module.user.id == current_user.id:
             page = max(0, request.args.get("page", 1, type=int))
-            per_page = max(
-                5,
-                min(request.args.get("per_page", 10, type=int), 100)
-            )
 
             if module.stream == "submission":
                 query = db.select(TriggeredSubmission, Module).where(TriggeredSubmission.module_id == module.id).order_by(TriggeredSubmission.created.desc())
