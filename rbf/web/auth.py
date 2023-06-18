@@ -28,7 +28,7 @@ def register():
             flash(error)
             return redirect(url_for("auth.register"))
         else:
-            new_user = User(username=form.username.data, email=form.email.data)
+            new_user = User(username=form.username.data)
             new_user.set_password(form.password.data)
             db.session.add(new_user)
             db.session.commit()
