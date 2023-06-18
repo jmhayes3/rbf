@@ -1,0 +1,9 @@
+click
+pyzmq
+sqlalchemy
+flask
+flask-sqlalchemy
+flask-login
+flask-wtf
+python-dotenv
+gunicorn

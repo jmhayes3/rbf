@@ -11,10 +11,6 @@ class RegistrationForm(FlaskForm):
         "Username",
         validators=[validators.Length(min=3, max=25)]
     )
-    email = StringField(
-        "Email",
-        validators=[validators.Length(min=6, max=320)]
-    )
     password = PasswordField(
         "Password",
         validators=[
