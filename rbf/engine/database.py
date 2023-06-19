@@ -8,7 +8,8 @@ from sqlalchemy.sql import text
 class Database:
 
     def __init__(self):
-        self.engine = create_engine("sqlite:///:memory:", echo=False)
+        # NOTE: Using multiple worker nodes requires using a database that supports concurrent writes.
+        self.engine = create_engine("sqlite:///:memory:", echo=True)
 
         self.engine.dispose()
 

@@ -36,6 +36,7 @@ def submission_publisher(subreddit="all"):
     print("Submission stream opened")
 
     for submission in submissions:
+        print(submission)
         if submission is not None:
             submission_data = {
                 "submission_id": submission.id,
@@ -52,6 +53,8 @@ def submission_publisher(subreddit="all"):
                 submission_data["author"] = submission.author.name
             except AttributeError:
                 submission_data["author"] = "[unknown]"
+
+            print(submission_data)
 
             publisher.send_json({
                 "context": "submission",
@@ -74,6 +77,7 @@ def comment_publisher(subreddit="all"):
     print("Comment stream opened")
 
     for comment in comments:
+        print(comment)
         if comment is not None:
             comment_data = {
                 "comment_id": comment.id,
@@ -87,6 +91,8 @@ def comment_publisher(subreddit="all"):
                 comment_data["author"] = comment.author.name
             except AttributeError:
                 comment_data["author"] = "[unknown]"
+
+            print(comment_data)
 
             publisher.send_json({
                 "context": "comment",
