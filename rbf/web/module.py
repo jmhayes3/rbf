@@ -16,21 +16,21 @@ from .helpers import flash_form_errors
 module_bp = Blueprint("module", __name__, url_prefix="/user")
 
 
-def publish_message(context, payload):
+def dispatch_message(context, payload):
     uri = current_app.config["ENGINE_URI"]
     ctx = zmq.Context()
-    publisher = ctx.socket(zmq.PUSH)
+    dispatcher = ctx.socket(zmq.PUSH)
     try:
-        publisher.connect(uri)
-        publisher.send_json({
+        dispatcher.connect(uri)
+        dispatcher.send_json({
             "context": context,
             "payload": payload
         })
     except Exception as e:
         raise e
     finally:
-        publisher.disconnect(uri)
-        publisher.close()
+        dispatcher.disconnect(url=uri)
+        dispatcher.close()
         ctx.term()
 
 
@@ -99,7 +99,7 @@ def create():
             new_module = create_module(current_user, form)
             db.session.add(new_module)
             db.session.commit()
-            publish_message("load", new_module.id)
+            dispatch_message("load", new_module.id)
         return redirect(url_for("module.activity", id=new_module.id))
     else:
         flash_form_errors(form)
@@ -200,7 +200,7 @@ def start(id):
     module = Module.query.filter(Module.id == id).first()
     if module is not None:
         if module.user.id == current_user.id:
-            publish_message("load", module.id)
+            dispatch_message("load", module.id)
             module.status = "STARTING"
             db.session.commit()
             return redirect(url_for("module.activity", id=id))
@@ -216,7 +216,7 @@ def stop(id):
     module = Module.query.filter(Module.id == id).first()
     if module is not None:
         if module.user.id == current_user.id:
-            publish_message("kill", module.id)
+            dispatch_message("kill", module.id)
             module.status = "STOPPING"
             db.session.commit()
             return redirect(url_for("module.activity", id=id))

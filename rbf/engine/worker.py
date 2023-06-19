@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 import logging
 import traceback
@@ -10,7 +9,7 @@ from rbf.engine.database import Database
 from rbf.engine.responder import Responder
 
 
-HEARTBEAT_INTERVAL = 1.0
+HEALTHCHECK_INTERVAL = 5.0
 
 logger = logging.getLogger(__name__)
 
@@ -18,15 +17,30 @@ logger = logging.getLogger(__name__)
 class Worker:
 
     def __init__(self):
+        # TODO: Generate a uuid for id.
         self.id = os.getpid()
+
+        self.responders = []
+        self.bots = {}
+
+        self.db = Database()
+
+        self.seen_submissions = 0
+        self.seen_comments = 0
 
         self.ctx = zmq.Context()
 
+        # Sink for bot load requests.
+        # TODO: Measure time elapsed from original send to recieve.
+        # Test how long it takes before a message gets handled using
+        # different numbers of workers.
+        self.collector = self.ctx.socket(zmq.PULL)
+
+        # Bind socket to address. Connect using PUSH sockets from clients.
+        self.collector.bind("tcp://127.0.0.1:5557")
+
         self.subscriber = self.ctx.socket(zmq.SUB)
         self.subscriber.setsockopt_string(zmq.SUBSCRIBE, "")
-
-        # Subscribe to broadcaster.
-        self.subscriber.connect("tcp://127.0.0.1:5556")
 
         # Subscribe to submission publisher.
         self.subscriber.connect("tcp://127.0.0.1:5560")
@@ -34,81 +48,18 @@ class Worker:
         # Subscribe to comment publisher.
         self.subscriber.connect("tcp://127.0.0.1:5561")
 
-        # Sink for bot load requests.
-        self.collector = self.ctx.socket(zmq.PULL)
-        self.collector.connect("tcp://127.0.0.1:5557")
-
-        self.publisher = self.ctx.socket(zmq.PUB)
-        self.publisher.connect("tcp://127.0.0.1:5558")
-
         self.poller = zmq.Poller()
         self.poller.register(self.collector, zmq.POLLIN)
         self.poller.register(self.subscriber, zmq.POLLIN)
 
-        self.responders = []
+    def load_responder(self, responder_id):
+        """Load bot from db."""
 
-        self.db = Database()
-
-        self.seen_submissions = 0
-        self.seen_comments = 0
-
-    def send_heartbeat(self) -> None:
-        self.publisher.send_json({
-            "context": "heartbeat",
-            "payload": {
-                "worker_id": self.id,
-            }
-        })
-
-    def send_status(self) -> None:
-        self.publisher.send_json({
-            "context": "status",
-            "payload": {
-                "seen_submissions": self.seen_submissions,
-                "seen_comments": self.seen_comments,
-                "worker_id": self.id,
-            }
-        })
-
-    def get_responder(self, responder_id):
-        for active_responder in self.responders:
-            if active_responder.id == responder_id:
-                return active_responder
-
-    def load_responder(self, responder_id) -> bool:
-        responder = self.get_responder(responder_id)
-
-        if responder:
-            logger.info("Responder {} already loaded".format(responder_id))
-            return False
-        else:
-            module = self.db.get_module(responder_id)
-            if module:
-                responder = Responder(module[0], module[1])
-                self.responders.append(responder)
-                logger.info(f"Responder {responder.id} loaded")
-                self.db.update_module_status(responder_id, "RUNNING")
-                return True
-            else:
-                logger.warning(
-                    "Module {} not found".format(responder_id)
-                )
-                return False
-
-    def kill_responder(self, responder_id) -> bool:
-        responder = self.get_responder(responder_id)
-        if responder:
-            self.responders.remove(responder)
-            logger.info(
-                "Responder {} killed".format(responder_id)
-            )
-            self.db.update_module_status(responder_id, "READY")
-            return True
-        else:
-            logger.info(
-                "Responder {} not found".format(responder_id)
-            )
-            return False
+        module = self.db.get_module(responder_id)
+        if module:
+            responder = Responder(module[0], module[1])
+            self.responders.append(responder)
+            self.db.update_module_status(responder_id, "RUNNING")
 
     def on_submission(self, submission) -> None:
         if submission:
@@ -132,69 +83,51 @@ class Worker:
                         comment
                     )
 
-    def on_kill_message(self, payload) -> None:
-        logger.debug("Kill request received: {}".format(payload))
-        responder = payload.get("responder")
-        killed = self.kill_responder(responder)
-        if killed:
-            payload = {
-                "responder": responder,
-                "worker_id": self.id
-            }
-            self.publisher.send_json({
-                "context": "killed",
-                "payload": payload
-            })
+    def on_load(self, payload) -> None:
+        print(f"Load request received: {payload}")
 
-    def on_load_message(self, payload) -> None:
-        logger.debug("Load request received: {}".format(payload))
         responder = payload.get("responder")
         loaded = self.load_responder(responder)
-        if loaded:
-            payload = {
-                "responder": responder,
-                "worker_id": self.id,
-            }
-            self.publisher.send_json({
-                "context": "loaded",
-                "payload": payload
-            })
 
     def shutdown(self):
         self.subscriber.close()
         self.collector.close()
-        self.publisher.close()
         self.ctx.term()
-        sys.exit(0)
 
     def start(self):
         print(f"Worker {self.id} started")
+        print(f"Database: {self.db.engine}")
 
-        self.send_heartbeat()
-
-        alarm = time.time() + HEARTBEAT_INTERVAL
+        alarm = time.time() + HEALTHCHECK_INTERVAL
         while True:
             try:
                 events = dict(self.poller.poll(timeout=1000))
+
+                # Check for bots wanting to be loaded first.
                 if self.collector in events:
                     message = self.collector.recv_json()
-                    context = message.get("context")
-                    payload = message.get("payload")
-                    if context == "load":
-                        self.on_load_message(payload)
+                    context = message["context"]
+                    payload = message["payload"]
+
+                    if message == "load":
+                        self.on_load(payload)
+
                 if self.subscriber in events:
                     message = self.subscriber.recv_json()
-                    context = message.get("context")
-                    payload = message.get("payload")
-                    if context == "kill":
-                        self.on_kill_message(payload=payload)
-                    elif context == "submission":
+                    context = message["context"]
+                    payload = message["payload"]
+
+                    if context == "submission":
                         self.on_submission(submission=payload)
                     elif context == "comment":
                         self.on_comment(comment=payload)
+
                 if time.time() >= alarm:
-                    self.send_heartbeat()
-                    alarm = time.time() + HEARTBEAT_INTERVAL
+                    alarm = time.time() + HEALTHCHECK_INTERVAL
+                    print(f"Bots: {self.bots}")
+                    print(f"Seen submissions: {self.seen_submissions}")
+                    print(f"Seen comments: {self.seen_comments}")
+
             except KeyboardInterrupt:
                 self.shutdown()
             except zmq.ZMQError:
