@@ -1,12 +1,12 @@
-import os
 import time
 import logging
 import traceback
+import uuid
 
 import zmq
 
 from rbf.engine.database import Database
-from rbf.engine.responder import Responder
+from rbf.engine.bot import Bot
 
 
 HEALTHCHECK_INTERVAL = 5.0
@@ -17,10 +17,9 @@ logger = logging.getLogger(__name__)
 class Worker:
 
     def __init__(self):
-        # TODO: Generate a uuid for id.
-        self.id = os.getpid()
+        self._uuid = uuid.uuid4()
+        print(f"UUID: {self._uuid}")
 
-        self.responders = []
         self.bots = {}
 
         self.db = Database()
@@ -34,9 +33,9 @@ class Worker:
         # TODO: Measure time elapsed from original send to recieve.
         # Test how long it takes before a message gets handled using
         # different numbers of workers.
-        self.collector = self.ctx.socket(zmq.PULL)
+        self.collector = self.ctx.socket(zmq.SUB)
 
-        # Bind socket to address. Connect using PUSH sockets from clients.
+        # Bind socket to address. Connect using PUB sockets from clients.
         self.collector.bind("tcp://127.0.0.1:5557")
 
         self.subscriber = self.ctx.socket(zmq.SUB)
@@ -52,42 +51,49 @@ class Worker:
         self.poller.register(self.collector, zmq.POLLIN)
         self.poller.register(self.subscriber, zmq.POLLIN)
 
-    def load_responder(self, responder_id):
-        """Load bot from db."""
-
-        module = self.db.get_module(responder_id)
+    def load_bot(self, bot_id):
+        module = self.db.get_module(bot_id)
         if module:
-            responder = Responder(module[0], module[1])
-            self.responders.append(responder)
-            self.db.update_module_status(responder_id, "RUNNING")
+            bot = Bot(None, None)
+            self.bots[bot] = "RUNNING"
+            self.db.update_module_status(bot_id, "RUNNING")
+
+    def kill_bot(self, bot_id):
+        bot = self.bots.pop(bot_id)
+
+        print(f"Bot {bot} killed.")
 
     def on_submission(self, submission) -> None:
         if submission:
             self.seen_submissions += 1
-            for responder in self.responders:
-                triggered = responder.process_submission(submission)
+            for bot in self.bots:
+                triggered = bot.process_submission(submission)
                 if triggered:
                     self.db.insert_triggered_submission(
-                        responder.id,
+                        bot.id,
                         submission
                     )
 
     def on_comment(self, comment) -> None:
         if comment:
             self.seen_comments += 1
-            for responder in self.responders:
-                triggered = responder.process_comment(comment)
+            for bot in self.bots:
+                triggered = bot.process_comment(comment)
                 if triggered:
                     self.db.insert_triggered_comment(
-                        responder.id,
+                        bot.id,
                         comment
                     )
 
-    def on_load(self, payload) -> None:
-        print(f"Load request received: {payload}")
+    def on_load(self, bot) -> None:
+        print(f"Load request received for bot: {bot}")
 
-        responder = payload.get("responder")
-        loaded = self.load_responder(responder)
+        loaded = self.load_bot(bot)
+
+    def on_kill(self, bot) -> None:
+        print(f"Kill request received for bot: {bot}")
+
+        killed = self.kill_bot(bot)
 
     def shutdown(self):
         self.subscriber.close()
@@ -95,22 +101,23 @@ class Worker:
         self.ctx.term()
 
     def start(self):
-        print(f"Worker {self.id} started")
+        print(f"Worker {self._uuid} started")
         print(f"Database: {self.db.engine}")
 
         alarm = time.time() + HEALTHCHECK_INTERVAL
         while True:
             try:
                 events = dict(self.poller.poll(timeout=1000))
-
                 # Check for bots wanting to be loaded first.
                 if self.collector in events:
                     message = self.collector.recv_json()
                     context = message["context"]
                     payload = message["payload"]
 
-                    if message == "load":
+                    if context == "load":
                         self.on_load(payload)
+                    elif context == "kill":
+                        self.on_kill(bot=payload)
 
                 if self.subscriber in events:
                     message = self.subscriber.recv_json()
@@ -127,7 +134,6 @@ class Worker:
                     print(f"Bots: {self.bots}")
                     print(f"Seen submissions: {self.seen_submissions}")
                     print(f"Seen comments: {self.seen_comments}")
-
             except KeyboardInterrupt:
                 self.shutdown()
             except zmq.ZMQError:

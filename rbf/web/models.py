@@ -35,7 +35,7 @@ class User(db.Model, UserMixin):
 
 class Module(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(25), unique=True, nullable=False)
+    name = db.Column(db.String(25), unique=False, nullable=False)
     status = db.Column(db.String(10), nullable=False, default="READY")
     stream = db.Column(db.String(10), nullable=False)
     trigger = db.Column(db.Text, nullable=False)

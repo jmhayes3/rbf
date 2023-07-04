@@ -1,8 +1,6 @@
 import json
 
-from .components import (
-    Component, Keyword
-)
+from .triggers import Keyword
 
 
 def create_trigger(data):
@@ -31,24 +29,11 @@ class Trigger:
         self.targets = targets
         self.components = components
 
-        self.validate()
-
-    def validate(self):
-        if not isinstance(self.stream, str):
-            raise TypeError
-        if not isinstance(self.components, list):
-            raise TypeError
-        for component in self.components:
-            if not isinstance(component, Component):
-                raise TypeError
-
     def add_target(self, target):
-        if isinstance(target, str):
-            self.targets.append(target)
+        self.targets.append(target)
 
     def add_component(self, component):
-        if isinstance(component, Component):
-            self.components.append(component)
+        self.components.append(component)
 
     def check_components(self, data):
         if self.components:

@@ -1,7 +1,11 @@
-from rbf.engine.components import Contains, Keyword
+from rbf.engine.triggers import Trigger, Contains, Keyword, Regex
 
 
-def test_contains_component():
+def test_trigger_class(trigger=Trigger):
+    assert issubclass(trigger, object)
+
+
+def test_contains_trigger():
     data = {
         "title": "A good ol' fashioned Old Fashioned",
     }
@@ -22,7 +26,7 @@ def test_contains_component():
     assert result is None
 
 
-def test_keyword_component():
+def test_keyword_trigger():
     data = {
         "body": "A good ol' fashioned Old Fashioned",
     }
@@ -37,3 +41,7 @@ def test_keyword_component():
     component.require_all = True
     result = component.process(data)
     assert result is None
+
+
+def test_regex_trigger():
+    pass

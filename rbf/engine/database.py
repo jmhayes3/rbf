@@ -9,7 +9,7 @@ class Database:
 
     def __init__(self):
         # NOTE: Using multiple worker nodes requires using a database that supports concurrent writes.
-        self.engine = create_engine("sqlite:///:memory:", echo=True)
+        self.engine = create_engine(os.environ.get("DATABASE_URI"), echo=True)
 
         self.engine.dispose()
 

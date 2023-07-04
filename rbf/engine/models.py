@@ -14,7 +14,6 @@ class User(Base):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True)
     username = Column(String(25), unique=True, nullable=False)
-    email = Column(String(320), unique=True, nullable=True)
     password = Column(String(128), nullable=False)
 
     modules = relationship(
@@ -54,62 +53,6 @@ class Module(Base):
     @property
     def fullname(self):
         return "{}/{}".format(self.user.username, self.name)
-
-    @staticmethod
-    def insert_triggered_submission(module_id, submission):
-        with db_session() as session:
-            module = session.query(Module).get(module_id)
-            triggered = TriggeredSubmission(
-                module=module,
-                submission_id=submission.get("submission_id"),
-                title=submission.get("title"),
-                author=submission.get("author"),
-                body=submission.get("body"),
-                url=submission.get("url"),
-                subreddit=submission.get("subreddit"),
-                nsfw=submission.get("nsfw"),
-                permalink=submission.get("permalink"),
-                created_utc=submission.get("created_utc"),
-            )
-            session.add(triggered)
-            session.commit()
-
-    @staticmethod
-    def insert_triggered_comment(module_id, comment):
-        with db_session() as session:
-            module = session.query(Module).get(module_id)
-            triggered = TriggeredComment(
-                module=module,
-                comment_id=comment.get("comment_id"),
-                body=comment.get("body"),
-                author=comment.get("author"),
-                subreddit=comment.get("subreddit"),
-                permalink=comment.get("permalink"),
-                created_utc=comment.get("created_utc"),
-            )
-            session.add(triggered)
-            session.commit()
-
-    @staticmethod
-    def update_status(module_id, status):
-        with db_session() as session:
-            module = session.query(Module).get(module_id)
-            module.status = status
-            session.commit()
-
-    @staticmethod
-    def get(module_id):
-        with db_session() as session:
-            module = session.query(Module).get(module_id)
-            return module
-
-    @staticmethod
-    def enabled():
-        with db_session() as session:
-            modules = session.query(Module) \
-                                .filter(Module.status == "RUNNING") \
-                                .all()
-            return modules
 
     def __repr__(self):
         return "<Module {}>".format(self.name)

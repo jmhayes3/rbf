@@ -3,12 +3,8 @@ import os
 import praw
 import zmq
 
-from dotenv import load_dotenv
-
 
 def get_session():
-    load_dotenv()
-
     # needs a refresh_token or username and password
     session = praw.Reddit(
         user_agent=os.environ.get("DESCRIPTION"),
