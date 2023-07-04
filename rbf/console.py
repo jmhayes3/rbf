@@ -2,8 +2,7 @@
 
 import click
 
-from .engine.manager import Manager
-from .engine.worker import Worker
+from .engine.server import Server
 
 from .web import create_app
 
@@ -16,8 +15,8 @@ def cli() -> None:
 @cli.command()
 @click.option("--workers", "-w", type=int, default=1)
 def engine(workers) -> None:
-    manager = Manager()
-    manager.start()
+    server = Server()
+    server.start()
 
 
 @cli.command()

@@ -27,6 +27,10 @@ class Server:
         self.worker.start()
 
 
-if __name__ == "__main__":
+def main():
     server = Server()
     server.start()
+
+
+if __name__ == "__main__":
+    main()

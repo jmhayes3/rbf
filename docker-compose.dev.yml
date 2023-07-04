@@ -4,21 +4,39 @@ services:
   web:
     build:
       context: .
-      dockerfile: dev.Dockerfile
+      dockerfile: web.Dockerfile
+    environment:
+      DATABASE_URI: "postgresql://super_admin:super_password@postgres:5432/super_db"
+      ENGINE_URI: "tcp://engine:5557"
     ports:
       - 8000:5000
     volumes:
-      - ./:/app
+      - ./:/web
 
-  pgsql:
-    image: postgres:12
+  engine:
+    build:
+      context: .
+      dockerfile: engine.Dockerfile
     environment:
-      POSTGRES_USER: master_service
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: master_service
+      DATABASE_URI: "postgresql://super_admin:super_password@127.0.0.1:5432/super_db"
+    ports:
+      - 5557:5557
     volumes:
-      - pgsql_data:/var/lib/postgresql/data
+      - ./:/engine
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: super_admin
+      POSTGRES_PASSWORD: super_password
+      POSTGRES_DB: super_db
+      PGDATA: /data/postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_db:/data/postgres
 
 volumes:
-  pgsql_data:
+  postgres_db:
     driver: local
