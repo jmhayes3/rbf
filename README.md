@@ -28,3 +28,9 @@ Start web app:
     
     $ rbf web
 
+### Docker
+Spin up a dev environment using docker compose:
+
+    $ docker compose -f docker-compose.dev.yml up
+
+Then, point your browser at http://localhost:8000 to access the web application.
