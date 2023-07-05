@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-WORKDIR /app
+WORKDIR /code
 
 # Install Poetry
 RUN apt-get update && apt-get install gcc g++ curl build-essential -y
@@ -16,6 +16,6 @@ COPY poetry.lock pyproject.toml ./
 COPY ./ ./
 
 # Install dependencies
-RUN poetry config virtualenvs.create true && poetry install --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
 
-CMD ["rbf-web"]
+CMD ["python", "-m", "flask", "--app=rbf.web", "run", "--host=0.0.0.0", "--debug"]

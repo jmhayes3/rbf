@@ -15,6 +15,7 @@ def create_app(config_object=Config):
     db.init_app(app)
 
     with app.app_context():
+        from .models import AppUser
         db.drop_all()
         db.create_all()
 

@@ -3,16 +3,19 @@ import os
 import praw
 import zmq
 
+from dotenv import load_dotenv
+
 
 def get_session():
+    load_dotenv()
     # needs a refresh_token or username and password
     session = praw.Reddit(
-        user_agent=os.environ.get("DESCRIPTION"),
+        user_agent=os.environ.get("APP_USER_AGENT"),
         client_id=os.environ.get("APP_KEY"),
         client_secret=os.environ.get("APP_SECRET"),
-        password=os.environ.get("PASSWORD"),
-        username=os.environ.get("USERNAME"),
-        # refresh_token=os.environ.get("REFRESH_TOKEN"),
+        password=os.environ.get("APP_PASSWORD"),
+        username=os.environ.get("APP_USERNAME"),
+        # refresh_token=os.environ.get("APP_REFRESH_TOKEN"),
     )
     return session
 
@@ -32,14 +35,14 @@ def submission_publisher(subreddit="all"):
     print("Submission stream opened")
 
     for submission in submissions:
-        print(submission)
+        # print(submission)
         if submission is not None:
             submission_data = {
                 "submission_id": submission.id,
                 "title": submission.title,
                 "url": submission.url,
                 "body": submission.selftext,
-                "subreddit": submission.subreddit.display_name,
+                "subreddit": submission.subreddit.display_name.lower(),
                 "permalink": submission.permalink,
                 "nsfw": submission.over_18,
                 "created_utc": submission.created_utc,
@@ -50,7 +53,7 @@ def submission_publisher(subreddit="all"):
             except AttributeError:
                 submission_data["author"] = "[unknown]"
 
-            print(submission_data)
+            # print(submission_data)
 
             publisher.send_json({
                 "context": "submission",
@@ -73,13 +76,13 @@ def comment_publisher(subreddit="all"):
     print("Comment stream opened")
 
     for comment in comments:
-        print(comment)
+        # print(comment)
         if comment is not None:
             comment_data = {
                 "comment_id": comment.id,
                 "body": comment.body,
                 "permalink": comment.permalink,
-                "subreddit": comment.subreddit.display_name,
+                "subreddit": comment.subreddit.display_name.lower(),
                 "created_utc": comment.created_utc,
             }
 
@@ -88,7 +91,7 @@ def comment_publisher(subreddit="all"):
             except AttributeError:
                 comment_data["author"] = "[unknown]"
 
-            print(comment_data)
+            # print(comment_data)
 
             publisher.send_json({
                 "context": "comment",

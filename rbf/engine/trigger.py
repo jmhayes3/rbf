@@ -1,6 +1,6 @@
 import json
 
-from .triggers import Keyword
+from triggers import Keyword
 
 
 def create_trigger(data):

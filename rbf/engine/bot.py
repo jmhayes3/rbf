@@ -5,8 +5,8 @@ a target (subreddit), a trigger, and an action.
 Replaces the Responder class.
 """
 
-from .triggers import Contains, Regex, Keyword
-from .actions import Log
+from triggers import Contains, Regex, Keyword
+from actions import Log
 
 
 class Bot:

@@ -13,8 +13,7 @@ def cli() -> None:
 
 
 @cli.command()
-@click.option("--workers", "-w", type=int, default=1)
-def engine(workers) -> None:
+def engine() -> None:
     server = Server()
     server.start()
 

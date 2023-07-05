@@ -5,8 +5,8 @@ import uuid
 
 import zmq
 
-from rbf.engine.database import Database
-from rbf.engine.bot import Bot
+from database import Database
+from bot import Bot
 
 
 HEALTHCHECK_INTERVAL = 5.0
@@ -18,12 +18,10 @@ class Worker:
 
     def __init__(self):
         self._uuid = uuid.uuid4()
-        print(f"UUID: {self._uuid}")
-
-        self.bots = {}
 
         self.db = Database()
 
+        self.bots = {}
         self.seen_submissions = 0
         self.seen_comments = 0
 
@@ -36,7 +34,7 @@ class Worker:
         self.collector = self.ctx.socket(zmq.SUB)
 
         # Bind socket to address. Connect using PUB sockets from clients.
-        self.collector.bind("tcp://127.0.0.1:5557")
+        self.collector.bind("tcp://0.0.0.0:5557")
 
         self.subscriber = self.ctx.socket(zmq.SUB)
         self.subscriber.setsockopt_string(zmq.SUBSCRIBE, "")
@@ -66,6 +64,7 @@ class Worker:
     def on_submission(self, submission) -> None:
         if submission:
             self.seen_submissions += 1
+            self.db.insert_submission(submission=submission)
             for bot in self.bots:
                 triggered = bot.process_submission(submission)
                 if triggered:
@@ -77,6 +76,7 @@ class Worker:
     def on_comment(self, comment) -> None:
         if comment:
             self.seen_comments += 1
+            self.db.insert_comment(comment=comment)
             for bot in self.bots:
                 triggered = bot.process_comment(comment)
                 if triggered:
@@ -140,6 +140,10 @@ class Worker:
                 logger.error(msg=traceback.format_exc())
 
 
-if __name__ == "__main__":
+def main():
     worker = Worker()
     worker.start()
+
+
+if __name__ == "__main__":
+    main()

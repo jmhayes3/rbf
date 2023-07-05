@@ -32,8 +32,6 @@ pylint = "^2.17.4"
 
 [tool.poetry.scripts]
 rbf = "rbf.console:cli"
-rbf-server = "rbf.engine.server:main"
-rbf-web = "rbf.web:create_app"
 
 [build-system]
 requires = ["poetry-core"]

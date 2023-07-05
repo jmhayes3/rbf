@@ -4,7 +4,7 @@ from flask import (
 from flask_login import LoginManager, login_user, logout_user
 
 from .forms import RegistrationForm, LoginForm
-from .models import db, User
+from .models import db, AppUser
 from .helpers import flash_form_errors
 
 
@@ -15,20 +15,20 @@ login_manager = LoginManager()
 
 @login_manager.user_loader
 def load_user(id):
-    return User.query.get(int(id))
+    return AppUser.query.get(int(id))
 
 
 @auth_bp.route("/register", methods=("GET", "POST"))
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User.query.filter(User.username == form.username.data).first()
+        user = AppUser.query.filter(AppUser.username == form.username.data).first()
         if user is not None:
             error = "Username unavailable."
             flash(error)
             return redirect(url_for("auth.register"))
         else:
-            new_user = User(username=form.username.data)
+            new_user = AppUser(username=form.username.data)
             new_user.set_password(form.password.data)
             db.session.add(new_user)
             db.session.commit()
@@ -45,7 +45,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         error = "Incorrect username or password."
-        user = User.query.filter(User.username == form.username.data).first()
+        user = AppUser.query.filter(AppUser.username == form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash(error)
             return redirect(url_for("auth.login"))

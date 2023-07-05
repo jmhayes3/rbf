@@ -2,8 +2,8 @@ import multiprocessing
 
 from dotenv import load_dotenv
 
-from rbf.engine.publishers import comment_publisher, submission_publisher
-from rbf.engine.worker import Worker
+from publishers import comment_publisher, submission_publisher
+from worker import Worker
 
 
 class Server:
@@ -20,6 +20,7 @@ class Server:
         self.worker = Worker()
 
     def start(self) -> None:
+        print("Starting server.")
         self.submission_publisher.start()
         self.comment_publisher.start()
 

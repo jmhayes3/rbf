@@ -1,29 +1,6 @@
 version: "3"
 
 services:
-  web:
-    build:
-      context: .
-      dockerfile: web.Dockerfile
-    environment:
-      DATABASE_URI: "postgresql://super_admin:super_password@postgres:5432/super_db"
-      ENGINE_URI: "tcp://engine:5557"
-    ports:
-      - 8000:5000
-    volumes:
-      - ./:/web
-
-  engine:
-    build:
-      context: .
-      dockerfile: engine.Dockerfile
-    environment:
-      DATABASE_URI: "postgresql://super_admin:super_password@127.0.0.1:5432/super_db"
-    ports:
-      - 5557:5557
-    volumes:
-      - ./:/engine
-
   postgres:
     image: postgres:latest
     container_name: postgres
@@ -36,6 +13,31 @@ services:
       - 5432:5432
     volumes:
       - postgres_db:/data/postgres
+
+  engine:
+    build:
+      context: .
+      dockerfile: engine.Dockerfile
+    container_name: engine
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URI: "postgresql://super_admin:super_password@postgres:5432/super_db"
+    ports:
+      - 5557:5557
+
+  web:
+    build:
+      context: .
+      dockerfile: web.Dockerfile
+    container_name: web
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URI: "postgresql://super_admin:super_password@postgres:5432/super_db"
+      ENGINE_URI: "tcp://engine:5557"
+    ports:
+      - 8000:5000
 
 volumes:
   postgres_db:
