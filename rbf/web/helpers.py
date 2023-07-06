@@ -16,22 +16,36 @@ def flash_form_errors(form):
             )
 
 
+def publish_message(context, payload):
+    uri = current_app.config["ENGINE_URI"]
+    ctx = zmq.Context()
+    publisher = ctx.socket(zmq.PUB)
+    try:
+        publisher.bind(uri)
+        publisher.send_json({
+            "context": context,
+            "payload": payload
+        })
+    except zmq.ZMQError as e:
+        raise e
+    finally:
+        publisher.unbind(uri)
+
+
 def dispatch_message(context, payload):
     uri = current_app.config["ENGINE_URI"]
     ctx = zmq.Context()
-    dispatcher = ctx.socket(zmq.PUB)
+    dispatcher = ctx.socket(zmq.PUSH)
     try:
-        dispatcher.connect(uri)
+        dispatcher.bind(uri)
         dispatcher.send_json({
             "context": context,
             "payload": payload
         })
-    except Exception as e:
+    except zmq.ZMQError as e:
         raise e
     finally:
-        dispatcher.disconnect(uri)
-        dispatcher.close()
-        ctx.term()
+        dispatcher.unbind(uri)
 
 
 def create_module(current_user, form):
@@ -64,7 +78,7 @@ def create_module(current_user, form):
     module = Module(
         trigger=json.dumps(trigger)
     )
-    module.user = current_user
+    module.app_user = current_user
     module.name = form.name.data
     module.stream = form.stream.data
 

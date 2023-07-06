@@ -1,24 +1,35 @@
-import os
-
 from sqlalchemy import create_engine
 from sqlalchemy import select, update, insert
 from sqlalchemy.sql import text
 
 from models import (
+    Base,
+    AppUser,
     Module,
     Submission,
     Comment,
     TriggeredSubmission,
-    TriggeredComment
+    TriggeredComment,
 )
+
 
 class Database:
 
-    def __init__(self):
-        # NOTE: Using multiple worker nodes requires using a database that supports concurrent writes.
-        self.engine = create_engine(os.environ.get("DATABASE_URI"), echo=True)
+    def __init__(self, database_uri, echo=False):
+        self.database_uri = database_uri
+        self.echo = echo
 
+    def init_db(self):
+        self.engine = create_engine(self.database_uri, echo=self.echo)
+
+    def close_db(self):
         self.engine.dispose()
+
+    def create_all(self):
+        Base.metadata.create_all(self.engine)
+
+    def drop_all(self):
+        Base.metadata.drop_all(self.engine)
 
     def get_module(self, module_id):
         with self.engine.connect() as conn:

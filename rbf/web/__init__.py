@@ -16,7 +16,6 @@ def create_app(config_object=Config):
 
     with app.app_context():
         from .models import AppUser
-        db.drop_all()
         db.create_all()
 
     from .auth import login_manager

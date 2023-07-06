@@ -10,20 +10,21 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
-class User(Base):
-    __tablename__ = "user"
+class AppUser(Base):
+    __tablename__ = "app_user"
     id = Column(Integer, primary_key=True)
     username = Column(String(25), unique=True, nullable=False)
     password = Column(String(128), nullable=False)
+    refresh_token = Column(String(50), nullable=True)
 
     modules = relationship(
         "Module",
-        back_populates="user",
+        back_populates="app_user",
         cascade="all, delete, delete-orphan"
     )
 
     def __repr__(self):
-        return "<User {}>".format(self.username)
+        return "<AppUser {}>".format(self.username)
 
 
 class Module(Base):
@@ -31,13 +32,13 @@ class Module(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(25), nullable=False)
     status = Column(String(10), nullable=False, default="READY")
+    enabled = Column(Boolean, nullable=False, default=True)
     stream = Column(String(10), nullable=False)
-    trigger = Column(Text, nullable=False)
-    actions = Column(Text, nullable=True)
-    refresh_token = Column(String(50), nullable=True)
+    trigger = Column(Text, nullable=True)
+    action = Column(Text, nullable=True)
     created = Column(DateTime(timezone=False), server_default=func.now())
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    user = relationship("User", back_populates="modules")
+    app_user_id = Column(Integer, ForeignKey("app_user.id"), nullable=False)
+    app_user = relationship("AppUser", back_populates="modules")
 
     triggered_submissions = relationship(
         "TriggeredSubmission",
@@ -52,7 +53,7 @@ class Module(Base):
 
     @property
     def fullname(self):
-        return "{}/{}".format(self.user.username, self.name)
+        return "{}/{}".format(self.app_user.username, self.name)
 
     def __repr__(self):
         return "<Module {}>".format(self.name)
@@ -61,7 +62,7 @@ class Module(Base):
 class Submission(Base):
     __tablename__ = "submission"
     id = Column(Integer, primary_key=True)
-    submission_id = Column(String(15), nullable=False, unique=True)
+    submission_id = Column(String(15), nullable=False)
     title = Column(String(300), nullable=False)
     url = Column(Text, nullable=True)
     body = Column(Text, nullable=True)
@@ -79,7 +80,7 @@ class Submission(Base):
 class Comment(Base):
     __tablename__ = "comment"
     id = Column(Integer, primary_key=True)
-    comment_id = Column(String(15), nullable=False, unique=True)
+    comment_id = Column(String(15), nullable=False)
     body = Column(Text, nullable=False)
     author = Column(String(50), nullable=False)
     subreddit = Column(String(50), nullable=False)

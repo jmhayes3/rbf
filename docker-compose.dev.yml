@@ -23,6 +23,7 @@ services:
       - postgres
     environment:
       DATABASE_URI: "postgresql://super_admin:super_password@postgres:5432/super_db"
+      WEB_URI: "tcp://web:5557"
     ports:
       - 5557:5557
 
@@ -35,7 +36,7 @@ services:
       - postgres
     environment:
       DATABASE_URI: "postgresql://super_admin:super_password@postgres:5432/super_db"
-      ENGINE_URI: "tcp://engine:5557"
+      ENGINE_URI: "tcp://0.0.0.0:5557"
     ports:
       - 8000:5000
 

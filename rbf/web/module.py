@@ -1,16 +1,15 @@
-import json
-import zmq
-
 from flask import (
-    Blueprint, flash, redirect, render_template, request, url_for, current_app
+    Blueprint, flash, redirect, render_template, url_for, request
 )
 from flask_login import login_required, current_user
 from werkzeug.exceptions import abort
 
 from .models import db
-from .forms import ModuleForm
 from .models import Module, TriggeredSubmission, TriggeredComment
-from .helpers import flash_form_errors, dispatch_message, create_module
+from .forms import ModuleForm
+from .helpers import (
+    flash_form_errors, dispatch_message, publish_message, create_module
+)
 
 
 module_bp = Blueprint("module", __name__, url_prefix="/user")
@@ -34,7 +33,7 @@ def create():
     form = ModuleForm()
     if form.validate_on_submit():
         module = Module.query.filter(
-            (Module.user == current_user) &
+            (Module.app_user == current_user) &
             (Module.name == form.name.data)
         ).first()
         if module is not None:
@@ -62,14 +61,14 @@ def detail(id):
 def activity(id):
     module = Module.query.filter(Module.id == id).first()
     if module is not None:
-        if module.user.id == current_user.id:
+        if module.app_user.id == current_user.id:
             page = max(0, request.args.get("page", 1, type=int))
 
             if module.stream == "submission":
-                query = db.select(TriggeredSubmission, Module).where(TriggeredSubmission.module_id == module.id).order_by(TriggeredSubmission.created.desc())
+                query = db.select(TriggeredSubmission).where(TriggeredSubmission.module_id == module.id).order_by(TriggeredSubmission.created.desc())
                 print(query)
             elif module.stream == "comment":
-                query = db.select(TriggeredComment, Module).where(TriggeredComment.module_id == module.id).order_by(TriggeredComment.created.desc())
+                query = db.select(TriggeredComment).where(TriggeredComment.module_id == module.id).order_by(TriggeredComment.created.desc())
                 print(query)
 
             page = db.paginate(query)
@@ -90,7 +89,7 @@ def activity(id):
 def delete(id):
     module = Module.query.filter(Module.id == id).first()
     if module is not None:
-        if module.user.id == current_user.id:
+        if module.app_user.id == current_user.id:
             db.session.delete(module)
             db.session.commit()
             return redirect(url_for("module.index"))
@@ -105,7 +104,7 @@ def delete(id):
 def trigger(id):
     module = Module.query.filter(Module.id == id).first()
     if module is not None:
-        if module.user.id == current_user.id:
+        if module.app_user.id == current_user.id:
             return render_template("module/trigger.html", module=module)
         else:
             abort(403)
@@ -118,7 +117,7 @@ def trigger(id):
 def actions(id):
     module = Module.query.filter(Module.id == id).first()
     if module is not None:
-        if module.user.id == current_user.id:
+        if module.app_user.id == current_user.id:
             return render_template("module/actions.html", module=module)
         else:
             abort(403)
@@ -131,7 +130,7 @@ def actions(id):
 def settings(id):
     module = Module.query.filter(Module.id == id).first()
     if module is not None:
-        if module.user.id == current_user.id:
+        if module.app_user.id == current_user.id:
             return render_template("module/settings.html", module=module)
         else:
             abort(403)
@@ -144,7 +143,7 @@ def settings(id):
 def start(id):
     module = Module.query.filter(Module.id == id).first()
     if module is not None:
-        if module.user.id == current_user.id:
+        if module.app_user.id == current_user.id:
             dispatch_message("load", module.id)
             module.status = "STARTING"
             db.session.commit()
@@ -160,8 +159,8 @@ def start(id):
 def stop(id):
     module = Module.query.filter(Module.id == id).first()
     if module is not None:
-        if module.user.id == current_user.id:
-            dispatch_message("kill", module.id)
+        if module.app_user.id == current_user.id:
+            publish_message("kill", module.id)
             module.status = "STOPPING"
             db.session.commit()
             return redirect(url_for("module.activity", id=id))

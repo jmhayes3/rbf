@@ -9,15 +9,15 @@ from werkzeug.security import check_password_hash, generate_password_hash
 db = SQLAlchemy()
 
 
-class User(db.Model, UserMixin):
+class AppUser(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(25), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
-    created = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    refresh_token = db.Column(db.String(50), nullable=True)
 
     modules = db.relationship(
         "Module",
-        back_populates="user",
+        back_populates="app_user",
         cascade="all, delete, delete-orphan"
     )
 
@@ -28,20 +28,20 @@ class User(db.Model, UserMixin):
         return check_password_hash(self.password, password)
 
     def __repr__(self):
-        return "<User {}>".format(self.username)
+        return "<AppUser {}>".format(self.username)
 
 
 class Module(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(25), unique=False, nullable=False)
     status = db.Column(db.String(10), nullable=False, default="READY")
+    enabled = db.Column(db.Boolean, nullable=False, default=True)
     stream = db.Column(db.String(10), nullable=False)
-    trigger = db.Column(db.Text, nullable=False)
-    actions = db.Column(db.Text, nullable=True)
-    refresh_token = db.Column(db.String(50), nullable=True)
+    trigger = db.Column(db.Text, nullable=True)
+    action = db.Column(db.Text, nullable=True)
     created = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    user = db.relationship("User", back_populates="modules")
+    app_user_id = db.Column(db.Integer, db.ForeignKey("app_user.id"), nullable=False)
+    app_user = db.relationship("AppUser", back_populates="modules")
 
     triggered_submissions = db.relationship(
         "TriggeredSubmission",
@@ -59,12 +59,12 @@ class Module(db.Model):
 
     @property
     def fullname(self):
-        return "{}/{}".format(self.user.username, self.name)
+        return "{}/{}".format(self.app_user.username, self.name)
 
     def to_dict(self):
         return {
             "id": self.id,
-            "user": self.user.username,
+            "user": self.app_user.username,
             "trigger": self.trigger.to_dict()
         }
 
@@ -82,7 +82,7 @@ class Module(db.Model):
 
 class Submission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    submission_id = db.Column(db.String(10), nullable=False, unique=True)
+    submission_id = db.Column(db.String(10), nullable=False)
     title = db.Column(db.String(300), nullable=False)
     body = db.Column(db.Text, nullable=False)
     author = db.Column(db.String(50), nullable=False)
@@ -99,7 +99,7 @@ class Submission(db.Model):
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    comment_id = db.Column(db.String(10), nullable=False, unique=True)
+    comment_id = db.Column(db.String(10), nullable=False)
     body = db.Column(db.Text, nullable=False)
     author = db.Column(db.String(50), nullable=False)
     subreddit = db.Column(db.String(50), nullable=False)

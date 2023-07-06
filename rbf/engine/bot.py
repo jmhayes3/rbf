@@ -11,7 +11,7 @@ from actions import Log
 
 class Bot:
 
-    def __init__(self, trigger, action, stream="submission", target="all"):
+    def __init__(self, trigger, action, stream="submission", subreddit=None):
         self.trigger = trigger
         self.action = action
 
@@ -19,18 +19,20 @@ class Bot:
         self.stream = stream
 
         # subreddit
-        self.target = target
-
-    def process_item(self, item):
-        if item["stream"] == "submission":
-            self.process_submission(item)
-        elif item["stream"] == "comment":
-            self.process_comment(item)
-        else:
-            return None
+        self.subreddit = subreddit
 
     def process_submission(self, submission):
-        assert submission["stream"] == "submission"
+        if self.subreddit == "all":
+            return submission["submission_id"]
+        elif self.subreddit == submission["subreddit"]:
+            return submission["submission_id"]
+
+        return None
 
     def process_comment(self, comment):
-        assert comment["stream"] == "comment"
+        if self.subreddit == "all":
+            return comment["comment_id"]
+        elif self.subreddit == comment["subreddit"]:
+            return comment["comment_id"]
+
+        return None

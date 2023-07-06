@@ -1,35 +1,51 @@
-import multiprocessing
+import os
+import time
+import logging
+import multiprocessing as mp
 
 from dotenv import load_dotenv
 
 from publishers import comment_publisher, submission_publisher
 from worker import Worker
+from database import Database
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class Server:
 
-    def __init__(self) -> None:
+    def __init__(self, workers=2) -> None:
         load_dotenv()
 
-        # Run as a separate process.
-        self.submission_publisher = multiprocessing.Process(target=submission_publisher)
+        self.workers = workers
+        self.worker_processes = []
 
-        # Run as a separate process.
-        self.comment_publisher = multiprocessing.Process(target=comment_publisher)
-
-        self.worker = Worker()
+        self.submission_publisher = mp.Process(target=submission_publisher)
+        self.comment_publisher = mp.Process(target=comment_publisher)
 
     def start(self) -> None:
-        print("Starting server.")
+        logger.info("Server started")
+
+        self.db = Database(os.environ["DATABASE_URI"])
+        self.db.init_db()
+        self.db.create_all()
+        self.db.close_db()
+
+        time.sleep(1)
+
+        for _ in range(self.workers):
+            worker_process = Worker()
+            worker_process.start()
+            self.worker_processes.append(worker_process)
+
         self.submission_publisher.start()
         self.comment_publisher.start()
 
-        # Blocking.
-        self.worker.start()
-
 
 def main():
-    server = Server()
+    server = Server(workers=2)
     server.start()
 
 
