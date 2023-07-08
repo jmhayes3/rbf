@@ -6,35 +6,25 @@
 
 ## Overview
 
-RBF is a framework for building and managing bots that interface with Reddit. It is designed to be simple to use, and simple to extend.
+RBF is a framework for building and managing bots that interface with Reddit. It is designed to be easy to use and simple to extend.
 
 This project was started with two primary goals in mind:
 
-1. Lower the barrier to entry for creating Reddit bots (no coding required).
+1. Lower the barrier to entry for creating Reddit bots.
 2. Be scalable without depending on third-party cloud services.
 
-## Getting Started
+## Installing
 
-### Installation
+### Poetry
 
     $ git clone https://github.com/jmhayes3/rbf.git
     $ cd rbf
     $ poetry install
 
-### Usage
-
-Start the engine:
-
-    $ rbf engine
-
-Start web app:
-
-    $ rbf web
-
 ### Docker
 
-Spin up a dev environment using docker compose:
+Start the application using docker compose:
 
     $ docker compose -f docker-compose.dev.yml up
 
-Then, point your browser at <http://localhost:8000> to access the web application.
+Then, point your browser at <http://localhost:8000> to access the web application. 
