@@ -2,6 +2,7 @@
 This module contains a collection of Action classes to be used by bot modules.
 """
 
+
 class Action:
     """Action base class."""
 

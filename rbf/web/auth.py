@@ -8,7 +8,7 @@ from .models import db, AppUser
 from .helpers import flash_form_errors
 
 
-auth_bp= Blueprint("auth", __name__, url_prefix="/auth")
+auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 login_manager = LoginManager()
 
